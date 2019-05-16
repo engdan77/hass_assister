@@ -1,3 +1,4 @@
+from typing import Union, Optional
 from fastapi import FastAPI
 import uvicorn
 import asyncio
@@ -9,8 +10,6 @@ from appdirs import user_config_dir
 from pathlib import Path
 
 from hass_assister.hass_common.api import HassInstance
-
-import time
 
 app = FastAPI()
 scheduler = AsyncIOScheduler()
@@ -26,6 +25,10 @@ async def start_uvicorn():
     loop = asyncio.get_event_loop()
     await uvicorn.run(app, host='0.0.0.0', port=8000)
 
+class MyScheduler(object):
+    def __init__(self, scheduler: AsyncIOScheduler, schedule_queue: Optional[asyncio.Queue]) -> None:
+        pass
+
 async def start_scheduler(scheduler_):
     scheduler_.add_job(tick, 'interval', seconds=3, id='tick')
     scheduler_.start()
@@ -40,6 +43,7 @@ def get_settings():
     logger.info(f"creating {conf_path}")
     conf = easyconf.Config(str(conf_path))
     hass_host = conf.hass_host(initial='localhost', default='localhost')
+    logger.info(hass_host)
     return conf
 
 
@@ -48,8 +52,7 @@ if __name__ == '__main__':
     # Configure uvicorn
     config = uvicorn.Config(app, host='0.0.0.0', port=8000)
     server = uvicorn.Server(config)
-    loop = asyncio.get_event_loop()
 
-    # scheduler.add_job()
-    loop.create_task(start_scheduler(scheduler))
-    loop.run_until_complete(server.serve())
+    asyncio.ensure_future(start_scheduler(scheduler))
+    asyncio.get_event_loop().run_until_complete(server.serve())
+
