@@ -1,4 +1,4 @@
-from typing import Union, Optional
+from typing import Union, Optional, List, Dict
 from fastapi import FastAPI
 import uvicorn
 import asyncio
@@ -14,12 +14,16 @@ import functools
 default_config = {
     'hass_host': {'initial': 'localhost', 'default': 'localhost'},
 }
+initial_scheduler = [
+    ['tick', 'interval', {'seconds': 3, 'id': 'tick'}]
+]
+
 
 
 from hass_assister.hass_common.api import HassInstance
 
 app = FastAPI()
-scheduler = AsyncIOScheduler()
+
 
 @app.get('/')
 async def read_root():
@@ -36,8 +40,17 @@ async def start_uvicorn():
 
 
 class MyScheduler(object):
-    def __init__(self, scheduler: AsyncIOScheduler, schedule_queue: Optional[asyncio.Queue]) -> None:
-        pass
+    def __init__(self, schedule_queue: Optional[asyncio.Queue], initials: List[str, str, Dict]=[]) -> None:
+        self.scheduler = AsyncIOScheduler()
+        self.queue = schedule_queue
+        self.add_initials(initials)
+
+    def add_task(self, _func, _type, **kwargs):
+        self.scheduler.add_job(getattr(globals(), _func), **kwargs)
+
+    def add_initials(self, initials):
+        for _func, _type, kwargs in initials:
+            self.add_task(_func, _type, kwargs)
 
 
 async def start_scheduler(scheduler_):
