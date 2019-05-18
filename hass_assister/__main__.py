@@ -1,4 +1,4 @@
-from typing import Union, Optional, List, Dict
+from typing import Union, Optional, List, Dict, Any
 from fastapi import FastAPI
 import uvicorn
 import asyncio
@@ -14,10 +14,9 @@ import functools
 default_config = {
     'hass_host': {'initial': 'localhost', 'default': 'localhost'},
 }
-initial_scheduler = [
-    ['tick', 'interval', {'seconds': 3, 'id': 'tick'}]
+initial_scheduled_tasks = [
+    ['tick', 'interval', {'seconds': 3, 'id': 'tick'}],
 ]
-
 
 
 from hass_assister.hass_common.api import HassInstance
@@ -40,17 +39,25 @@ async def start_uvicorn():
 
 
 class MyScheduler(object):
-    def __init__(self, schedule_queue: Optional[asyncio.Queue], initials: List[str, str, Dict]=[]) -> None:
+    def __init__(self,
+                 initials: List[List],
+                 schedule_queue: Optional[asyncio.Queue]=None) -> None:
         self.scheduler = AsyncIOScheduler()
-        self.queue = schedule_queue
+
+        if scheduler_queue:
+            self.queue = schedule_queue
+        else:
+            self.queue = asyncio.Queue()
+
         self.add_initials(initials)
+        self.scheduler.start()
 
     def add_task(self, _func, _type, **kwargs):
-        self.scheduler.add_job(getattr(globals(), _func), **kwargs)
+        self.scheduler.add_job(globals()[_func], _type, **kwargs)
 
     def add_initials(self, initials):
         for _func, _type, kwargs in initials:
-            self.add_task(_func, _type, kwargs)
+            self.add_task(_func, _type, **kwargs)
 
 
 async def start_scheduler(scheduler_):
@@ -76,11 +83,18 @@ def init_settings(_default_config_params):
 
 
 if __name__ == '__main__':
+    # configuration
     conf = init_settings(default_config)
+
     # Configure uvicorn
     config = uvicorn.Config(app, host='0.0.0.0', port=8000)
     server = uvicorn.Server(config)
 
-    asyncio.ensure_future(start_scheduler(scheduler))
+    # scheduler
+    scheduler_queue = asyncio.Queue()
+    # scheduler = MyScheduler(scheduler_queue, initial_scheduled_tasks)
+    scheduler = MyScheduler(initial_scheduled_tasks)
+
+    # asyncio.ensure_future(start_scheduler(scheduler))
     asyncio.get_event_loop().run_until_complete(server.serve())
 
