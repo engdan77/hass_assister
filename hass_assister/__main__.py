@@ -1,4 +1,4 @@
-from typing import Union, Optional, List, Dict, Any, Sequence, Tuple
+from typing import Optional, List, Dict, Tuple
 from fastapi import FastAPI
 import uvicorn
 import asyncio
@@ -56,11 +56,6 @@ class MyScheduler(object):
     def add_initials(self, initials):
         for _func, _type, kwargs in initials:
             self.add_task(_func, _type, **kwargs)
-
-
-async def start_scheduler(scheduler_):
-    scheduler_.add_job(tick, 'interval', seconds=3, id='tick')
-    scheduler_.start()
 
 
 async def get_hass_instance():
