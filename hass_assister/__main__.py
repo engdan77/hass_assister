@@ -1,4 +1,4 @@
-from typing import Union, Optional, List, Dict, Any
+from typing import Union, Optional, List, Dict, Any, Sequence, Tuple
 from fastapi import FastAPI
 import uvicorn
 import asyncio
@@ -10,14 +10,12 @@ from appdirs import user_config_dir
 from pathlib import Path
 import functools
 
-
 default_config = {
     'hass_host': {'initial': 'localhost', 'default': 'localhost'},
 }
 initial_scheduled_tasks = [
-    ['tick', 'interval', {'seconds': 3, 'id': 'tick'}],
+    ('tick', 'interval', {'seconds': 3, 'id': 'tick'}),
 ]
-
 
 from hass_assister.hass_common.api import HassInstance
 
@@ -40,11 +38,11 @@ async def start_uvicorn():
 
 class MyScheduler(object):
     def __init__(self,
-                 initials: List[List],
-                 schedule_queue: Optional[asyncio.Queue]=None) -> None:
+                 initials: List[Tuple[str, str, Dict]],
+                 schedule_queue: Optional[asyncio.Queue] = None) -> None:
         self.scheduler = AsyncIOScheduler()
 
-        if scheduler_queue:
+        if schedule_queue is None:
             self.queue = schedule_queue
         else:
             self.queue = asyncio.Queue()
@@ -82,19 +80,15 @@ def init_settings(_default_config_params):
     return conf
 
 
-if __name__ == '__main__':
+def main():
     # configuration
     conf = init_settings(default_config)
 
     # Configure uvicorn
     config = uvicorn.Config(app, host='0.0.0.0', port=8000)
     server = uvicorn.Server(config)
-
-    # scheduler
-    scheduler_queue = asyncio.Queue()
-    # scheduler = MyScheduler(scheduler_queue, initial_scheduled_tasks)
     scheduler = MyScheduler(initial_scheduled_tasks)
-
-    # asyncio.ensure_future(start_scheduler(scheduler))
     asyncio.get_event_loop().run_until_complete(server.serve())
 
+if __name__ == '__main__':
+    main()
