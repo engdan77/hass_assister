@@ -1,9 +1,9 @@
-from typing import Optional, List, Dict, Tuple
+from .scheduler import MyScheduler
 from fastapi import FastAPI
 import uvicorn
 import asyncio
 from datetime import datetime
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
+
 from loguru import logger
 import easyconf
 from appdirs import user_config_dir
@@ -13,11 +13,10 @@ import functools
 default_config = {
     'hass_host': {'initial': 'localhost', 'default': 'localhost'},
 }
-initial_scheduled_tasks = [
-    ('tick', 'interval', {'seconds': 3, 'id': 'tick'}),
-]
 
-from hass_assister.hass_common.api import HassInstance
+initial_scheduled_tasks = [
+    ('hass_assister.tick', 'interval', {'seconds': 3, 'id': 'tick'}),
+]
 
 app = FastAPI()
 
@@ -32,30 +31,7 @@ async def tick():
 
 
 async def start_uvicorn():
-    loop = asyncio.get_event_loop()
     await uvicorn.run(app, host='0.0.0.0', port=8000)
-
-
-class MyScheduler(object):
-    def __init__(self,
-                 initials: List[Tuple[str, str, Dict]],
-                 schedule_queue: Optional[asyncio.Queue] = None) -> None:
-        self.scheduler = AsyncIOScheduler()
-
-        if schedule_queue is None:
-            self.queue = schedule_queue
-        else:
-            self.queue = asyncio.Queue()
-
-        self.add_initials(initials)
-        self.scheduler.start()
-
-    def add_task(self, _func, _type, **kwargs):
-        self.scheduler.add_job(globals()[_func], _type, **kwargs)
-
-    def add_initials(self, initials):
-        for _func, _type, kwargs in initials:
-            self.add_task(_func, _type, **kwargs)
 
 
 async def get_hass_instance():
@@ -79,11 +55,17 @@ def main():
     # configuration
     conf = init_settings(default_config)
 
-    # Configure uvicorn
+    # configure uvicorn
     config = uvicorn.Config(app, host='0.0.0.0', port=8000)
     server = uvicorn.Server(config)
+
+    # init scheduler
     scheduler = MyScheduler(initial_scheduled_tasks)
+    logger.debug(f'scheduler started {scheduler}')
+
+    # start event-loop
     asyncio.get_event_loop().run_until_complete(server.serve())
+
 
 if __name__ == '__main__':
     main()
