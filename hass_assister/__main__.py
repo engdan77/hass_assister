@@ -13,6 +13,7 @@ from .hass_common import HassInstance
 default_config = {
     'hass_url': {'initial': 'https://localhost:8123', 'default': 'http://localhost:8123'},
     'hass_api_key': {'initial': '', 'default': ''},
+    'hass_update_frequency_seconds': {'initial': 10, 'default': 10}
 }
 
 initial_scheduled_tasks = [
@@ -65,7 +66,7 @@ def main():
     logger.debug(f'scheduler started {scheduler}')
 
     # init hass-instance
-    hass = HassInstance(conf['hass_url'], conf['hass_api_key'])
+    hass = HassInstance(conf['hass_url'], conf['hass_api_key'], scheduler=scheduler, update_freq=conf['hass_update_frequency_seconds'])
 
     # start event-loop
     asyncio.get_event_loop().run_until_complete(server.serve())

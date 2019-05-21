@@ -4,6 +4,7 @@ import asyncio
 import importlib
 import sys
 import warnings
+from loguru import logger
 
 
 # Used to overcome "found in sys.modules after import of package .."
@@ -25,11 +26,15 @@ class MyScheduler(object):
         self.scheduler.start()
 
     def add_task(self, _func, _type, **kwargs):
-        module, attr = _func.rsplit('.') if '.' in _func else (None, _func)
-        if not module:
-            f = globals()[attr]
+        logger.info(f'adding scheduling for {_func} with {kwargs}')
+        if type(_func) is str:
+            module, attr = _func.rsplit('.') if '.' in _func else (None, _func)
+            if not module:
+                f = globals()[attr]
+            else:
+                f = getattr(importlib.import_module(module), attr)
         else:
-            f = getattr(importlib.import_module(module), attr)
+            f = _func
         self.scheduler.add_job(f, _type, **kwargs)  # special trick to allow calling attr within other package
 
 
