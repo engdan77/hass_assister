@@ -3,15 +3,16 @@ from fastapi import FastAPI
 import uvicorn
 import asyncio
 from datetime import datetime
-
 from loguru import logger
 import easyconf
 from appdirs import user_config_dir
 from pathlib import Path
 import functools
+from .hass_common import HassInstance
 
 default_config = {
-    'hass_host': {'initial': 'localhost', 'default': 'localhost'},
+    'hass_url': {'initial': 'https://localhost:8123', 'default': 'http://localhost:8123'},
+    'hass_api_key': {'initial': '', 'default': ''},
 }
 
 initial_scheduled_tasks = [
@@ -62,6 +63,9 @@ def main():
     # init scheduler
     scheduler = MyScheduler(initial_scheduled_tasks)
     logger.debug(f'scheduler started {scheduler}')
+
+    # init hass-instance
+    hass = HassInstance(conf['hass_url'], conf['hass_api_key'])
 
     # start event-loop
     asyncio.get_event_loop().run_until_complete(server.serve())
