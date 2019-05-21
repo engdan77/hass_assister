@@ -1,1 +1,1 @@
-from .__main__ import tick
+from .__main__ import ping

@@ -17,7 +17,7 @@ default_config = {
 }
 
 initial_scheduled_tasks = [
-    ('hass_assister.tick', 'interval', {'seconds': 3, 'id': 'tick'}),
+    ('hass_assister.ping', 'interval', {'seconds': 60, 'id': 'tick'}),
 ]
 
 app = FastAPI()
@@ -28,8 +28,8 @@ async def read_root():
     return {'hello': 'world'}
 
 
-async def tick():
-    logger.info('Tick! The time is: %s' % datetime.now())
+async def ping():
+    logger.debug('Pong! The time is: %s' % datetime.now())
 
 
 async def start_uvicorn():
