@@ -1,7 +1,6 @@
 from .scheduler import MyScheduler
 from fastapi import FastAPI
 import uvicorn
-import asyncio
 from datetime import datetime
 from loguru import logger
 import easyconf
@@ -83,7 +82,7 @@ def main():
 
     # start event-loop
     loop.run_until_complete(server.serve())
-    logger.info('end')
+    logger.info('stopping hass_assister')
 
 if __name__ == '__main__':
     main()
