@@ -9,11 +9,19 @@ from appdirs import user_config_dir
 from pathlib import Path
 import functools
 from .hass_common import HassInstance
+from .mqtt import MyMQTT
+import asyncio
+
+def def_conf(value):
+    return {_: value for _ in ('initial', 'default')}
 
 default_config = {
     'hass_url': {'initial': 'https://localhost:8123', 'default': 'http://localhost:8123'},
-    'hass_api_key': {'initial': '', 'default': ''},
-    'hass_update_frequency_seconds': {'initial': 10, 'default': 10}
+    'hass_api_key': def_conf(''),
+    'hass_update_frequency_seconds': def_conf(10),
+    'mqtt_broker': def_conf('localhost'),
+    'mqtt_user': def_conf(''),
+    'mqtt_password': def_conf('')
 }
 
 initial_scheduled_tasks = [
@@ -52,25 +60,30 @@ def init_settings(_default_config_params):
     logger.info(f'configuration loaded {conf}')
     return conf
 
-
 def main():
     # configuration
-    conf = init_settings(default_config)
+    c = init_settings(default_config)
 
     # configure uvicorn
     config = uvicorn.Config(app, host='0.0.0.0', port=8000)
     server = uvicorn.Server(config)
+
+    # event loop
+    loop = asyncio.get_event_loop()
+
+    # init mqtt
+    mqtt = MyMQTT(c['mqtt_broker'], auth=(c['mqtt_user'], c['mqtt_password']), event_loop=loop)
 
     # init scheduler
     scheduler = MyScheduler(initial_scheduled_tasks)
     logger.debug(f'scheduler started {scheduler}')
 
     # init hass-instance
-    hass = HassInstance(conf['hass_url'], conf['hass_api_key'], scheduler=scheduler, update_freq=conf['hass_update_frequency_seconds'])
+    hass = HassInstance(c['hass_url'], c['hass_api_key'], scheduler=scheduler, update_freq=c['hass_update_frequency_seconds'])
 
     # start event-loop
-    asyncio.get_event_loop().run_until_complete(server.serve())
-
+    loop.run_until_complete(server.serve())
+    logger.info('end')
 
 if __name__ == '__main__':
     main()
