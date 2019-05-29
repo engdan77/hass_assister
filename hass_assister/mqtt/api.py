@@ -16,12 +16,16 @@ class MyMQTT(object):
                  event_functions=None,
                  client_id: str = 'client_id',
                  event_loop=None) -> None:
+        default_events = {'on_connect': self.on_connect,
+                          'on_message': self.on_message,
+                          'on_disconnect': self.on_disconnect,
+                          'on_subscribe': self.on_subscribe}
         if event_functions is None:
-            event_functions = {'on_connect': self.on_connect,
-                               'on_message': self.on_message,
-                               'on_disconnect': self.on_disconnect,
-                               'on_subscribe': self.on_subscribe}
-        self.event_functions = event_functions
+            event_functions = {}
+
+        self.event_functions = default_events
+        self.event_functions.update(event_functions)
+
         self.client = MQTTClient(client_id)
         self.auth = auth
         self.broker = broker
@@ -76,5 +80,3 @@ class MyMQTT(object):
 
     def ask_exit(self, *args):
         asyncio.Event().set()
-
-        client = MQTTClient("client-id")

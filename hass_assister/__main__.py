@@ -29,7 +29,6 @@ initial_scheduled_tasks = [
 
 app = FastAPI()
 
-
 @app.get('/')
 async def read_root():
     return {'hello': 'world'}
@@ -39,12 +38,12 @@ async def ping():
     logger.debug('Pong! The time is: %s' % datetime.now())
 
 
+def on_hass_mqtt_message(client, topic, payload, qos, properties):
+    logger.info(f'Processing MQTT message: {topic} {payload}')
+
+
 async def start_uvicorn():
     await uvicorn.run(app, host='0.0.0.0', port=8000)
-
-
-async def get_hass_instance():
-    pass
 
 
 def init_settings(_default_config_params):
@@ -71,7 +70,8 @@ def main():
     loop = asyncio.get_event_loop()
 
     # init mqtt
-    mqtt = MyMQTT(c['mqtt_broker'], auth=(c['mqtt_user'], c['mqtt_password']), event_loop=loop)
+    mqtt_events = {'on_message': on_hass_mqtt_message}
+    mqtt = MyMQTT(c['mqtt_broker'], auth=(c['mqtt_user'], c['mqtt_password']), event_functions=mqtt_events)
 
     # init scheduler
     scheduler = MyScheduler(initial_scheduled_tasks)
