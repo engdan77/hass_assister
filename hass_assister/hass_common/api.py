@@ -3,6 +3,8 @@ import aiohttp
 from hass_assister.scheduler import MyScheduler
 from loguru import logger
 from nested_lookup import nested_lookup
+import fs
+import yaml
 
 class HassInstance(object):
     def __init__(self, url: str, auth_token: str, scheduler: Union[MyScheduler, None] = None, update_freq: int = 10):
@@ -23,3 +25,8 @@ class HassInstance(object):
             self.attributes = await response.json()
             entity_count = len(nested_lookup('entity_id', self.attributes))
             logger.debug(f'{entity_count} entities pulled')
+
+    def read_configuration(self, host, share):
+        f = fs.open_fs(f'smb://{host}/{share}').open('configuration.yaml').replace('!', '')
+        y = yaml.load(f)
+
