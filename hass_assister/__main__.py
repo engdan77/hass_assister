@@ -39,7 +39,11 @@ async def ping():
 
 
 def on_hass_mqtt_message(client, topic, payload, qos, properties):
-    logger.info(f'Processing MQTT message: {topic} {payload}')
+    entity = hass.get_entity_info(topic)
+    if entity:
+        logger.info(f'Processing MQTT message: {entity["name"]} changed to {payload.decode()}')
+    else:
+        logger.info(f'Processing MQTT message: {topic} {payload} {entity}')
 
 
 async def start_uvicorn():
@@ -78,6 +82,7 @@ def main():
     logger.debug(f'scheduler started {scheduler}')
 
     # init hass-instance
+    global hass
     hass = HassInstance(c['hass_url'], c['hass_api_key'], scheduler=scheduler, update_freq=c['hass_update_frequency_seconds'])
 
     # start event-loop
