@@ -43,7 +43,7 @@ def on_hass_mqtt_message(client, topic, payload, qos, properties):
     if entity:
         logger.info(f'Processing MQTT message: {entity["name"]} changed to {payload.decode()}')
     else:
-        logger.info(f'Processing MQTT message: {topic} {payload} {entity}')
+        logger.info(f'Processing MQTT message: {topic} {payload}')
 
 
 async def start_uvicorn():
