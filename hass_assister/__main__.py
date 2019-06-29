@@ -16,7 +16,7 @@ def def_conf(value):
     return {_: value for _ in ('initial', 'default')}
 
 default_config = {
-    'hass_url': {'initial': 'https://localhost:8123', 'default': 'http://localhost:8123'},
+    'hass_url': {'initial': 'http://localhost:8123', 'default': 'http://localhost:8123'},
     'hass_api_key': def_conf(''),
     'hass_update_frequency_seconds': def_conf(10),
     'mqtt_broker': def_conf('localhost'),
