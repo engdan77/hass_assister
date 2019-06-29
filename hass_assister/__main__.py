@@ -10,6 +10,7 @@ import functools
 from .hass_common import HassInstance
 from .mqtt import MyMQTT
 import asyncio
+import os
 
 def def_conf(value):
     return {_: value for _ in ('initial', 'default')}
@@ -53,7 +54,14 @@ async def start_uvicorn():
 
 def init_settings(_default_config_params):
     p = globals().get('__package__')
-    conf_path = Path(user_config_dir(p)) / Path(f'{p}.yaml')
+    local_config_dir = next(iter([d / 'config' for d in list(Path(os.path.abspath(__file__)).parents)[:2] if (d / 'config').exists()]), None)
+    if local_config_dir.exists():
+        logger.info(f'found local config directory in {local_config_dir}')
+        base_config_dir = local_config_dir
+    else:
+        base_config_dir = user_config_dir(p)
+        logger.info(f'no local config directory, using {base_config_dir}')
+    conf_path = Path(base_config_dir) / Path(f'{p}.yaml')
     conf_path.parent.mkdir(parents=True, exist_ok=True)
     logger.info(f"creating {conf_path}")
     conf_obj = easyconf.Config(str(conf_path))
