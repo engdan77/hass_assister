@@ -58,9 +58,13 @@ class MyMQTT(object):
 
     async def start(self, broker):
         logger.info('starting mqtt')
-        await self.client.connect(broker, port=self.port, keepalive=self.keepalive, version=MQTTv311)
-        await self.stop.wait()
-        await self.client.disconnect()
+        try:
+            await self.client.connect(broker, port=self.port, keepalive=self.keepalive, version=MQTTv311)
+        except OSError as e:
+            logger.error(f'unable to connect to mqtt with following error {e}')
+        else:
+            await self.stop.wait()
+            await self.client.disconnect()
 
     def publish(self, topic, message, qos=1):
         self.client.publish(topic, message, qos=qos)

@@ -31,15 +31,24 @@ class HassInstance(object):
     async def update_sensor_status(self):
         q = f'{self.url.strip("/")}/api/states'
         logger.debug(f'query {q}')
-        async with aiohttp.ClientSession() as s, s.get(q, headers={'Authorization': f'Bearer {self.auth_token}'}) as response:
-            self.attributes = await response.json()
-            entity_count = len(nested_lookup('entity_id', self.attributes))
-            logger.debug(f'{entity_count} entities pulled')
+        try:
+            async with aiohttp.ClientSession() as s, \
+                    s.get(q, headers={'Authorization': f'Bearer {self.auth_token}'}) as response:
+                self.attributes = await response.json()
+                entity_count = len(nested_lookup('entity_id', self.attributes))
+                logger.debug(f'{entity_count} entities pulled')
+        except aiohttp.ClientConnectorError as e:
+            logger.error(f'failed connecting to {q} with error {e}')
+
 
     def update_configuration(self):
         host = urlparse(self.url).netloc.split(':')[0]
-        f = fs.open_fs(f'smb://{host}/{self.share}').open('configuration.yaml').read().replace('!', '')
-        self.config = yaml.load(f)
+        try:
+            f = fs.open_fs(f'smb://{host}/{self.share}').open('configuration.yaml').read().replace('!', '')
+        except fs.errors.CreateFailed:
+            logger.error('unable to connect to HASS using smb, please verify hostname')
+        else:
+            self.config = yaml.load(f)
 
     def get_entity_info(self, mqtt_topic: str) -> Dict:
         c = self.config
