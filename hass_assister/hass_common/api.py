@@ -39,6 +39,9 @@ class HassInstance(object):
                 logger.debug(f'{entity_count} entities pulled')
         except aiohttp.ClientConnectorError as e:
             logger.error(f'failed connecting to {q} with error {e}')
+        except aiohttp.ContentTypeError as e:
+            logger.error(f'invalid JSON from HASS {e}')
+            logger.debug(f'{response}')
 
 
     def update_configuration(self):
