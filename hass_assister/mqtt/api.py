@@ -2,7 +2,6 @@ from typing import Dict, List
 import asyncio
 import signal
 from loguru import logger
-import time
 from gmqtt import Client as MQTTClient
 from gmqtt.mqtt.constants import MQTTv311
 
@@ -15,7 +14,9 @@ class MyMQTT(object):
                  auth: List[str] = [None, None],
                  event_functions=None,
                  client_id: str = 'client_id',
-                 event_loop=None) -> None:
+                 event_loop=None,
+                 **kwargs) -> None:
+
         default_events = {'on_connect': self.on_connect,
                           'on_message': self.on_message,
                           'on_disconnect': self.on_disconnect,
@@ -41,10 +42,11 @@ class MyMQTT(object):
         loop.add_signal_handler(signal.SIGINT, self.ask_exit)
         loop.add_signal_handler(signal.SIGTERM, self.ask_exit)
 
-        self.client = MQTTClient(client_id)
+        # passing any extra kwargs to the call to be used for e.g. on_connect
+        self.client = MQTTClient(client_id, **kwargs)
 
         for _ in [k for k, v in self.event_functions.items() if v is None]:
-            logger.warning(f'mqtt no function assigned to {k}')
+            logger.warning(f'mqtt no function assigned to {_}')
             self.event_functions.pop(k)
 
         for k, v in self.event_functions.items():
