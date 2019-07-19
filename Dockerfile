@@ -40,7 +40,6 @@ WORKDIR /app
 RUN chown -R appuser /app
 
 RUN pip install -r requirements.txt
-# RUN python setup.py install
 
 RUN echo appuser:root | chpasswd
 
