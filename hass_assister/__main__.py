@@ -13,18 +13,22 @@ import asyncio
 def def_conf(value):
     return {_: value for _ in ('initial', 'default')}
 
+default_initial_scheduled_tasks = [
+        ['hass_assister.ping', 'interval', {'seconds': 60, 'id': 'tick'}],
+        ]
+
 default_config = {
     'hass_url': {'initial': 'http://localhost:8123', 'default': 'http://localhost:8123'},
     'hass_api_key': def_conf(''),
     'hass_update_frequency_seconds': def_conf(10),
     'mqtt_broker': def_conf('localhost'),
     'mqtt_user': def_conf(''),
-    'mqtt_password': def_conf('')
+    'mqtt_password': def_conf(''),
+    'initial_scheduled_tasks': {
+        'initial': default_initial_scheduled_tasks,
+        'default': default_initial_scheduled_tasks
+    }
 }
-
-initial_scheduled_tasks = [
-    ('hass_assister.ping', 'interval', {'seconds': 60, 'id': 'tick'}),
-]
 
 app = FastAPI()
 
@@ -54,6 +58,7 @@ def main():
     loop = asyncio.get_event_loop()
 
     # init scheduler
+    initial_scheduled_tasks = c['initial_scheduled_tasks']
     scheduler = MyScheduler(initial_scheduled_tasks)
     logger.debug(f'scheduler started {scheduler}')
 
