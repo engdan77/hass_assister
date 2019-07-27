@@ -16,6 +16,9 @@ def def_conf(value):
 default_initial_scheduled_tasks = [
         ['hass_assister.ping', 'interval', {'seconds': 60, 'id': 'tick'}],
         ]
+default_dummy_display = {'enabled': False,
+                      'address': '127.0.0.1',
+                      'port': 9999}
 
 default_config = {
     'hass_url': {'initial': 'http://localhost:8123', 'default': 'http://localhost:8123'},
@@ -27,7 +30,9 @@ default_config = {
     'initial_scheduled_tasks': {
         'initial': default_initial_scheduled_tasks,
         'default': default_initial_scheduled_tasks
-    }
+    },
+    'dummy_display': {'initial': default_dummy_display,
+                      'default': default_dummy_display}
 }
 
 app = FastAPI()
@@ -68,7 +73,11 @@ def main():
 
     # init mqtt
     mqtt_events = {'on_message': on_hass_mqtt_message}
-    mqtt = MyMQTT(c['mqtt_broker'], auth=(c['mqtt_user'], c['mqtt_password']), event_functions=mqtt_events, hass_ref=hass)
+    mqtt = MyMQTT(c['mqtt_broker'],
+                  auth=(c['mqtt_user'], c['mqtt_password']),
+                  event_functions=mqtt_events,
+                  hass_ref=hass,
+                  app_config=c)
 
     # start event-loop
     loop.run_until_complete(server.serve())
