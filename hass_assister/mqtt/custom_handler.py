@@ -1,16 +1,23 @@
 from loguru import logger
-import asyncio
-
+import subprocess
+import json
 
 async def tcp_send(address, port, data, loop=None):
-    reader, writer = await asyncio.open_connection(address, port, loop=loop)
+    # reader, writer = await asyncio.open_connection(address, port, loop=loop)
     logger.debug(f'sending {data}')
-    writer.write(data.encode())
-    data = await reader.read(100)
-    logger.debug(f'received: {data.decode()}')
+    # writer.write(data.encode())
+    # data = await reader.read(100)
+    # logger.debug(f'received: {data.decode()}')
     logger.debug('close the socket')
-    writer.close()
+    #writer.close()
 
+
+def tcp_send_sync(address, port, data):
+    d = data.replace('"', '\\"')
+    command = f'echo "{d}" | nc {address} {port}'
+    logger.debug(command)
+    r = subprocess.check_output(command, shell=True)
+    logger.debug(r)
 
 async def send_dummy_display(address, port, data, display_type='text', loop=None):
     display_types = ('text', 'image')
@@ -19,7 +26,12 @@ async def send_dummy_display(address, port, data, display_type='text', loop=None
 
     if display_type == 'text':
         e, m = data
-        await tcp_send(address, port, f'{e}\\n{m}', loop=loop)
+        e = e.replace(' ', '\\\n')
+        payload = {'text': {'input_text': f'{e}\\\n{m}'}}
+        p = json.dumps(payload)
+        if not any((x in e for x in ('Bridge',))):
+            tcp_send_sync(address, port, p)
+            # await tcp_send(address, port, f'{e}\\n{m}', loop=loop)
 
 
 async def on_hass_mqtt_message(client, topic, payload, qos, properties):
