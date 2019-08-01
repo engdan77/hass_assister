@@ -1,23 +1,38 @@
 from loguru import logger
 import subprocess
 import json
+import re
+
+REPLACE_TEXT = {('light', 'coffee'): {r'\b1\b': 'ON',
+                                      r'\b0\b': 'OFF'}}
+
 
 async def tcp_send(address, port, data, loop=None):
-    # reader, writer = await asyncio.open_connection(address, port, loop=loop)
+    reader, writer = await asyncio.open_connection(address, port, loop=loop)
     logger.debug(f'sending {data}')
-    # writer.write(data.encode())
-    # data = await reader.read(100)
-    # logger.debug(f'received: {data.decode()}')
+    writer.write(data.encode())
+    data = await reader.read(100)
+    logger.debug(f'received: {data.decode()}')
     logger.debug('close the socket')
-    #writer.close()
+    writer.close()
 
 
-def tcp_send_sync(address, port, data):
+def tcp_send_blocking(address, port, data):
     d = data.replace('"', '\\"')
     command = f'echo "{d}" | nc {address} {port}'
     logger.debug(command)
     r = subprocess.check_output(command, shell=True)
     logger.debug(r)
+
+
+def adjust_text(input_payload):
+    output_payload = input_payload
+    for match_words, rules in REPLACE_TEXT.items():
+        if any((x in input_payload.lower() for x in match_words)):
+            for match, word in rules.items():
+                output_payload = re.sub(match, word, input_payload, re.IGNORECASE)
+    return output_payload
+
 
 async def send_dummy_display(address, port, data, display_type='text', loop=None):
     display_types = ('text', 'image')
@@ -27,11 +42,11 @@ async def send_dummy_display(address, port, data, display_type='text', loop=None
     if display_type == 'text':
         e, m = data
         e = e.replace(' ', '\\\n')
-        payload = {'text': {'input_text': f'{e}\\\n{m}'}}
+        display_text = adjust_text(f'{e}\\\n{m}')
+        payload = {'text': {'input_text': display_text}}
         p = json.dumps(payload)
         if not any((x in e for x in ('Bridge',))):
-            tcp_send_sync(address, port, p)
-            # await tcp_send(address, port, f'{e}\\n{m}', loop=loop)
+            tcp_send_blocking(address, port, p)
 
 
 async def on_hass_mqtt_message(client, topic, payload, qos, properties):
