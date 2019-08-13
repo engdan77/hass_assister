@@ -5,7 +5,7 @@ APScheduler==3.6.0
 gmqtt==0.3.6
 easyconf==1.1
 appdirs==1.4.3
-loguru==0.2.5
+loguru==0.3.2
 nested_lookup==0.2.12
 fastapi==0.30.0
 typing==3.7.4

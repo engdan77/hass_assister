@@ -8,6 +8,7 @@ from loguru import logger
 from .hass_common import HassInstance
 from .mqtt import MyMQTT
 import asyncio
+import sys
 
 
 def def_conf(value):
@@ -16,14 +17,14 @@ def def_conf(value):
 default_initial_scheduled_tasks = [
         ['hass_assister.ping', 'interval', {'seconds': 60, 'id': 'tick'}],
         ]
-default_dummy_display = {'enabled': False,
+ip_device = {'enabled': False,
                       'address': '127.0.0.1',
                       'port': 9999}
 
 default_config = {
     'hass_url': {'initial': 'http://localhost:8123', 'default': 'http://localhost:8123'},
     'hass_api_key': def_conf(''),
-    'hass_update_frequency_seconds': def_conf(10),
+    'hass_update_frequency_seconds': def_conf(60),
     'mqtt_broker': def_conf('localhost'),
     'mqtt_user': def_conf(''),
     'mqtt_password': def_conf(''),
@@ -31,8 +32,10 @@ default_config = {
         'initial': default_initial_scheduled_tasks,
         'default': default_initial_scheduled_tasks
     },
-    'dummy_display': {'initial': default_dummy_display,
-                      'default': default_dummy_display}
+    'dummy_display': {'initial': ip_device,
+                      'default': ip_device},
+    'kodi_display': {'initial': ip_device,
+                     'default': ip_device},
 }
 
 app = FastAPI()
@@ -52,6 +55,9 @@ async def start_uvicorn():
 
 
 def main():
+    # add better logging
+    logger.add(sys.stdout, backtrace=True, diagnose=True, enqueue=True)
+
     # configuration
     c = init_settings(default_config)
 

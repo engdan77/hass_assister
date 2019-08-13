@@ -2,6 +2,7 @@ from loguru import logger
 import subprocess
 import json
 import re
+import asyncio
 
 REPLACE_TEXT = {('light', 'coffee'): {r'\b1\b': 'ON',
                                       r'\b0\b': 'OFF'}}
@@ -34,19 +35,38 @@ def adjust_text(input_payload):
     return output_payload
 
 
+def adjust_display_text(data):
+    e, m = data
+    e = e.replace(' ', '\\\n')
+    display_text = adjust_text(f'{e}\\\n{m}')
+    return e, m, display_text
+
+
 async def send_dummy_display(address, port, data, display_type='text', loop=None):
     display_types = ('text', 'image')
-    if not display_type in display_types:
+    if display_type not in display_types:
         raise ValueError('display_type has to be text or image')
-
     if display_type == 'text':
-        e, m = data
-        e = e.replace(' ', '\\\n')
-        display_text = adjust_text(f'{e}\\\n{m}')
+        e, m, display_text = adjust_display_text(data)
         payload = {'text': {'input_text': display_text}}
         p = json.dumps(payload)
         if not any((x in e for x in ('Bridge',))):
+            logger.debug(f'sending message to dummy display {display_text}')
             tcp_send_blocking(address, port, p)
+
+
+def send_kodi_message(address, port, data):
+    from kodijson import Kodi, PLAYER_VIDEO
+    e, m, display_text = adjust_display_text(data)
+    kodi = Kodi(f'http://{address}:{port}/jsonrpc')
+    try:
+        logger.debug(f'sending message to Kodi {display_text}')
+        ping = kodi.JSONRPC.Ping()
+        kodi.GUI.ShowNotification({"title": "", "message": display_text})
+    except ConnectionError:
+        logger.warning(f'Unable to conned to Kodi {address}:{port}')
+    except Exception:
+        logger.exception('Something went wrong while sending to Kodi')
 
 
 async def on_hass_mqtt_message(client, topic, payload, qos, properties):
@@ -63,5 +83,12 @@ async def on_hass_mqtt_message(client, topic, payload, qos, properties):
             address = dummy_display_settings['address']
             port = dummy_display_settings['port']
             await send_dummy_display(address, port, (e, m), display_type='text', loop=client._connected._loop)
+        kodi_display_settings = client.properties['app_config']['kodi_display']
+        if kodi_display_settings['enabled']:
+            address = kodi_display_settings['address']
+            port = kodi_display_settings['port']
+            loop = asyncio.get_event_loop()
+            blocking_call = loop.run_in_executor(send_kodi_message, (address, port, (e, m)))
+            completed, pending = await asyncio.wait([blocking_call])
     else:
         logger.debug(f'Processing MQTT message: {topic} {payload}')
