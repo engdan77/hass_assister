@@ -3,6 +3,8 @@ import subprocess
 import json
 import re
 import asyncio
+import urllib3
+import requests
 
 REPLACE_TEXT = {('light', 'coffee'): {r'\b1\b': 'ON',
                                       r'\b0\b': 'OFF'}}
@@ -22,8 +24,12 @@ def tcp_send_blocking(address, port, data):
     d = data.replace('"', '\\"')
     command = f'echo "{d}" | nc {address} {port}'
     logger.debug(command)
-    r = subprocess.check_output(command, shell=True)
-    logger.debug(r)
+    try:
+        r = subprocess.check_output(command, shell=True)
+    except subprocess.CalledProcessError:
+        logger.warning(f'failed connecting to dummy_display {address}:{port}')
+    else:
+        logger.debug(r)
 
 
 def adjust_text(input_payload):
@@ -35,10 +41,15 @@ def adjust_text(input_payload):
     return output_payload
 
 
-def adjust_display_text(data):
+def adjust_display_text(data, adapt_for='dummy_display'):
     e, m = data
-    e = e.replace(' ', '\\\n')
-    display_text = adjust_text(f'{e}\\\n{m}')
+    if adapt_for == 'dummy_display':
+        e = e.replace(' ', '\\\n')
+        display_text = adjust_text(f'{e}\\\n{m}')
+    elif adapt_for == 'kodi_display':
+        display_text = adjust_text(f'{e} {m}')
+    else:
+        return None, None, None
     return e, m, display_text
 
 
@@ -47,7 +58,7 @@ async def send_dummy_display(address, port, data, display_type='text', loop=None
     if display_type not in display_types:
         raise ValueError('display_type has to be text or image')
     if display_type == 'text':
-        e, m, display_text = adjust_display_text(data)
+        e, m, display_text = adjust_display_text(data, adapt_for='dummy_display')
         payload = {'text': {'input_text': display_text}}
         p = json.dumps(payload)
         if not any((x in e for x in ('Bridge',))):
@@ -57,16 +68,20 @@ async def send_dummy_display(address, port, data, display_type='text', loop=None
 
 def send_kodi_message(address, port, data):
     from kodijson import Kodi, PLAYER_VIDEO
-    e, m, display_text = adjust_display_text(data)
+    e, m, display_text = adjust_display_text(data, adapt_for='kodi_display')
     kodi = Kodi(f'http://{address}:{port}/jsonrpc')
     try:
         logger.debug(f'sending message to Kodi {display_text}')
         ping = kodi.JSONRPC.Ping()
         kodi.GUI.ShowNotification({"title": "", "message": display_text})
-    except ConnectionError:
+    except (ConnectionError,
+            ConnectionRefusedError,
+            requests.exceptions.ConnectionError,
+            urllib3.exceptions.NewConnectionError,
+            urllib3.exceptions.MaxRetryError):
         logger.warning(f'Unable to conned to Kodi {address}:{port}')
     except Exception:
-        logger.exception('Something went wrong while sending to Kodi')
+        logger.exception('Something unexpected went wrong while sending to Kodi')
 
 
 async def on_hass_mqtt_message(client, topic, payload, qos, properties):
@@ -87,8 +102,8 @@ async def on_hass_mqtt_message(client, topic, payload, qos, properties):
         if kodi_display_settings['enabled']:
             address = kodi_display_settings['address']
             port = kodi_display_settings['port']
-            loop = asyncio.get_event_loop()
-            blocking_call = loop.run_in_executor(send_kodi_message, (address, port, (e, m)))
+            loop = client._connected._loop
+            blocking_call = loop.run_in_executor(None, send_kodi_message, address, port, (e, m))
             completed, pending = await asyncio.wait([blocking_call])
     else:
         logger.debug(f'Processing MQTT message: {topic} {payload}')
