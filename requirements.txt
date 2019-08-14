@@ -11,4 +11,5 @@ fastapi==0.30.0
 typing==3.7.4
 PyYAML==5.1.1
 fs.smbfs==0.5.2
+urllib3==1.24.3
 
