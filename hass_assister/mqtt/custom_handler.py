@@ -18,6 +18,8 @@ REPLACE_TEXT = {('light', 'coffee'): {r'\b1\b': 'ON',
                                  r'\b.{12}2E7EE1\b': 'Laundryoom door'}
                 }
 
+EXCLUDE_TEXT = ('RF Bridge 0',])
+
 
 async def tcp_send(address, port, data, loop=None):
     reader, writer = await asyncio.open_connection(address, port, loop=loop)
@@ -60,6 +62,8 @@ def adjust_display_text(data, adapt_for='dummy_display'):
     elif adapt_for == 'kodi_display':
         display_text = adjust_text(f'{e} {m}')
     else:
+        return None, None, None
+    if any([_ in display_text for _ in EXCLUDE_TEXT]):
         return None, None, None
     return e, m, display_text
 

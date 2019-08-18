@@ -5,6 +5,10 @@ LABEL maintainer="Daniel Engvall"
 ENV ROOT_PASSWORD root
 ENV TZ Europe/Stockholm
 
+RUN apk add tzdata
+RUN cp /usr/share/zoneinfo/Europe/Brussels /etc/localtime
+RUN echo "Europe/Stockholm" >  /etc/timezone
+
 # Update according to local environment or use --build-arg UID=xxx at build
 ARG UID=1004
 ARG GID=100
