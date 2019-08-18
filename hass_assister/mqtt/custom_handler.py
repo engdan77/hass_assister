@@ -18,7 +18,7 @@ REPLACE_TEXT = {('light', 'coffee'): {r'\b1\b': 'ON',
                                  r'\b.{12}2E7EE1\b': 'Laundryoom door'}
                 }
 
-EXCLUDE_TEXT = ('RF Bridge 0',])
+EXCLUDE_TEXT = ('RF Bridge 0',)
 
 
 async def tcp_send(address, port, data, loop=None):
