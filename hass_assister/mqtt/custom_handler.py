@@ -44,12 +44,12 @@ def tcp_send_blocking(address, port, data):
 
 
 def adjust_text(input_payload):
-    output_payload = input_payload
+    output_payload = input_payload.replace('\\\n', ' ').lower()
+    input_payload = input_payload.replace('\\\n', ' ').lower()
     for match_words, rules in REPLACE_TEXT.items():
-        if any((x.lower() in input_payload.lower() for x in match_words)):
+        if any((x.lower() in input_payload for x in match_words)):
             for match, word in rules.items():
-                output_payload = re.sub(match, word, input_payload, re.IGNORECASE)
-                break
+                output_payload = re.sub(match.lower(), word, output_payload, re.IGNORECASE)
     logger.debug(f'replacing "{input_payload}"" with "{output_payload}"')
     return output_payload
 
@@ -64,6 +64,7 @@ def adjust_display_text(data, adapt_for='dummy_display'):
     else:
         return None, None, None
     if any([_ in display_text for _ in EXCLUDE_TEXT]):
+        logger.debug(f'discarding message {display_text}')
         return None, None, None
     return e, m, display_text
 
