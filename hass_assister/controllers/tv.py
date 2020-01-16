@@ -78,9 +78,13 @@ class MyKodi():
             time.sleep(5)
         return False
 
-    def open_media(self, url='smb://10.1.1.5/multimedia/Mixed/Fire-Fish/Fireplace.mkv'):
+    def open_media(self, url=''):
         time.sleep(1)
         self.kodi.Player.Open(item={"file": url})
+
+    def open_channel(self, channel_id=0):
+        time.sleep(1)
+        self.kodi.Player.Open(item={"channelid": channel_id})
 
 
 def start_fire(message):
@@ -90,7 +94,18 @@ def start_fire(message):
     tv.my_launch_kodi()
     kodi = MyKodi()
     kodi.wait_until_started()
-    kodi.open_media()
+    kodi.open_media('smb://10.1.1.5/multimedia/Mixed/Fire-Fish/Fireplace.mkv')
+
+
+def start_children_tv(message):
+    logger.debug(f'start_fire arg {message}')
+    tv = MyPylips()
+    tv.my_start()
+    tv.my_launch_kodi()
+    kodi = MyKodi()
+    kodi.wait_until_started()
+    kodi.open_channel(248)
+    # To find channel: kodi.Player.GetItem(playerid=1)
 
 
 
