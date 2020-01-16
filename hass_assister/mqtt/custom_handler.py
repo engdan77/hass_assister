@@ -84,13 +84,13 @@ async def send_dummy_display(address, port, data, display_type='text', loop=None
 
 
 def send_kodi_message(address, port, data):
-    from kodijson import Kodi, PLAYER_VIDEO
+    from kodijson import Kodi
     e, m, display_text = adjust_display_text(data, adapt_for='kodi_display')
     kodi = Kodi(f'http://{address}:{port}/jsonrpc')
     try:
         logger.debug(f'sending message to Kodi {display_text}')
         time = datetime.datetime.now().strftime('%H:%M')
-        ping = kodi.JSONRPC.Ping()
+        kodi.JSONRPC.Ping()
         kodi.GUI.ShowNotification({"title": time, "message": display_text})
     except (ConnectionError,
             ConnectionRefusedError,
