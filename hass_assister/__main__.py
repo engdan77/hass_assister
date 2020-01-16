@@ -11,32 +11,27 @@ import asyncio
 import sys
 
 
-def def_conf(value):
-    return {_: value for _ in ('initial', 'default')}
-
 default_initial_scheduled_tasks = [
-        ['hass_assister.ping', 'interval', {'seconds': 60, 'id': 'tick'}],
-        ]
+        [
+            'hass_assister.ping',
+            'interval',
+            {'seconds': 60, 'id': 'tick'}
+        ],
+]
 ip_device = {'enabled': False,
-                      'address': '127.0.0.1',
-                      'port': 9999}
-
+             'address': '127.0.0.1',
+             'port': 9999}
 default_config = {
-    'hass_url': {'initial': 'http://localhost:8123', 'default': 'http://localhost:8123'},
-    'hass_api_key': def_conf(''),
-    'hass_update_frequency_seconds': def_conf(60),
-    'mqtt_broker': def_conf('localhost'),
-    'mqtt_user': def_conf(''),
-    'mqtt_password': def_conf(''),
-    'initial_scheduled_tasks': {
-        'initial': default_initial_scheduled_tasks,
-        'default': default_initial_scheduled_tasks
-    },
-    'dummy_display': {'initial': ip_device,
-                      'default': ip_device},
-    'kodi_display': {'initial': ip_device,
-                     'default': ip_device},
-    'mqtt_functions': {'start_fire': 'start_fire'}
+    'hass_url': {'initial': 'http://localhost:8123'},
+    'hass_api_key': {'initial': ''},
+    'hass_update_frequency_seconds': {'initial': 60},
+    'mqtt_broker': {'initial': 'localhost'},
+    'mqtt_user': {'initial': ''},
+    'mqtt_password': {'initial': ''},
+    'initial_scheduled_tasks': {'initial': default_initial_scheduled_tasks},
+    'dummy_display': {'initial': ip_device.copy()},
+    'kodi_display': {'initial': ip_device.copy()},
+    'mqtt_functions': {'initial': {'start_fire': 'hass_assister.controllers.tv.start_fire'}}
 }
 
 app = FastAPI()
@@ -57,6 +52,7 @@ async def start_uvicorn():
 
 def main():
     # add better logging
+    logger.remove()
     logger.add(sys.stdout, backtrace=True, diagnose=True, enqueue=True)
 
     # configuration
@@ -89,6 +85,7 @@ def main():
     # start event-loop
     loop.run_until_complete(server.serve())
     logger.info('stopping hass_assister')
+
 
 if __name__ == '__main__':
     main()

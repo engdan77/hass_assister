@@ -22,6 +22,8 @@ def init_settings(_default_config_params):
     conf_obj = easyconf.Config(str(conf_path))
     conf = {}
     for param, initials in _default_config_params.items():
+        if initials.get('default', None) is None:
+            initials['default'] = initials['initial']
         conf[param] = functools.partial(getattr(conf_obj, param), **initials)()
     logger.info(f'configuration loaded {conf}')
     return conf
