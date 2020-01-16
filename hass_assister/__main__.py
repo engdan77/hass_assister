@@ -36,7 +36,7 @@ default_config = {
                       'default': ip_device},
     'kodi_display': {'initial': ip_device,
                      'default': ip_device},
-    'mqtt_run_function': {'start_fire': 'start_fire'}
+    'mqtt_functions': {'start_fire': 'start_fire'}
 }
 
 app = FastAPI()

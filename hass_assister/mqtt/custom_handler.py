@@ -6,6 +6,7 @@ import asyncio
 import urllib3
 import requests
 import datetime
+from hass_assister.helper import import_item
 
 REPLACE_TEXT = {('light', 'coffee'): {r'\b1\b': 'ON',
                                       r'\b0\b': 'OFF'},
@@ -123,5 +124,8 @@ async def on_hass_mqtt_message(client, topic, payload, qos, properties):
             loop = client._connected._loop
             blocking_call = loop.run_in_executor(None, send_kodi_message, address, port, (e, m))
             completed, pending = await asyncio.wait([blocking_call])
+        mqtt_functions = client.properties['app_config'].get('mqtt_functions', {})
+        for k, v in mqtt_functions:
+            pass
     else:
         logger.debug(f'Processing MQTT message: {topic} {payload}')
