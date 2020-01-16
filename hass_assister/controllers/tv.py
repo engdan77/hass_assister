@@ -1,13 +1,15 @@
 from unittest.mock import MagicMock
 import sys
+sys.modules['paho'] = MagicMock()
+sys.modules['paho.mqtt.client'] = MagicMock()
 import os
 import json
 import time
 import requests
-sys.modules['paho'] = MagicMock()
-sys.modules['paho.mqtt.client'] = MagicMock()
+
 from hass_assister.controllers.pylips import Pylips
 from kodijson import Kodi
+from loguru import logger
 
 
 class MyPylips(Pylips):
@@ -36,20 +38,20 @@ class MyPylips(Pylips):
 
     def my_start(self):
         if 'standby' in self.run_command('powerstate').lower():
-            print('starting tv')
+            logger.debug('starting tv')
             self.run_command('standby')
             time.sleep(3)
         else:
-            print('tv already on')
+            logger.debug('tv already on')
 
     def my_launch_kodi(self, max_time=10):
         for _ in range(max_time):
-            print(f'waiting for TV to start {_}/{max_time}')
+            logger.debug(f'waiting for TV to start {_}/{max_time}')
             if 'on' in self.run_command('powerstate').lower():
                 break
             time.sleep(2)
             if _ == max_time - 1:
-                print('timed out')
+                logger.debug('timed out')
                 return
         if not 'kodi' in self.run_command('current_app').lower():
             self.run_command('launch_app',
@@ -66,7 +68,7 @@ class MyKodi():
 
     def wait_until_started(self, max_time=10):
         for _ in range(max_time):
-            print(f'attempt {_}/{max_time}')
+            logger.debug(f'attempt {_}/{max_time}')
             try:
                 ping = self.kodi.JSONRPC.Ping()
                 if ping['result'] == 'pong':
@@ -81,7 +83,8 @@ class MyKodi():
         self.kodi.Player.Open(item={"file": url})
 
 
-def start_fire():
+def start_fire(message):
+    logger.debug(f'start_fire arg {message}')
     tv = MyPylips()
     tv.my_start()
     tv.my_launch_kodi()
