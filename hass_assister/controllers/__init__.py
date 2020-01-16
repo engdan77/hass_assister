@@ -1,0 +1,1 @@
+from .tv import start_fire
