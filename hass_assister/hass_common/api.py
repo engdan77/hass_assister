@@ -51,7 +51,7 @@ class HassInstance(object):
         except fs.errors.CreateFailed:
             logger.error('unable to connect to HASS using smb, please verify hostname')
         else:
-            self.config = yaml.load(f)
+            self.config = yaml.load(f, Loader=yaml.FullLoader)
 
     def get_entity_info(self, mqtt_topic: str) -> Dict:
         c = self.config
