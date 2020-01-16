@@ -5,7 +5,7 @@ import importlib
 import sys
 import warnings
 from loguru import logger
-
+from hass_assister.helper import import_item
 
 # Used to overcome "found in sys.modules after import of package .."
 if not sys.warnoptions:  # allow overriding with `-W` option
@@ -27,14 +27,7 @@ class MyScheduler(object):
 
     def add_task(self, _func, _type, **kwargs):
         logger.info(f'adding scheduling for {_func} with {kwargs}')
-        if type(_func) is str:
-            module, attr = _func.rsplit('.') if '.' in _func else (None, _func)
-            if not module:
-                f = globals()[attr]
-            else:
-                f = getattr(importlib.import_module(module), attr)
-        else:
-            f = _func
+        f = import_item(_func)
         self.scheduler.add_job(f, _type, **kwargs)  # special trick to allow calling attr within other package
 
 
