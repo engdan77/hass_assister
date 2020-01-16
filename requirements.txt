@@ -2,7 +2,7 @@ aiohttp==3.5.4
 uvicorn==0.7.1
 fs==2.4.5
 APScheduler==3.6.0
-gmqtt>=0.3.6
+gmqtt==0.5.6
 easyconf==1.1
 appdirs==1.4.3
 loguru==0.3.2
@@ -14,5 +14,7 @@ fs.smbfs==0.5.2
 urllib3==1.24.3
 requests==2.21.0
 kodi-json==1.0.0
+pycryptodome==3.9.4
+
 
 
