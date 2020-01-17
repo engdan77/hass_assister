@@ -31,8 +31,9 @@ default_config = {
     'initial_scheduled_tasks': {'initial': default_initial_scheduled_tasks},
     'dummy_display': {'initial': ip_device.copy()},
     'kodi_display': {'initial': ip_device.copy()},
-    'mqtt_functions': {'initial': {'start_fire': 'hass_assister.controllers.tv.start_fire',
-                                   'start_children_tv': 'hass_assister.controllers.tv.start_children_tv'}}
+    'mqtt_functions': {'initial': {'tv_start_media': 'hass_assister.controllers.tv.start_media',
+                                   'tv_start_channel': 'hass_assister.controllers.tv.start_channel',
+                                   'tv_command': 'hass_assister.controllers.tv.command'}}
 }
 
 app = FastAPI()

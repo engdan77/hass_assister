@@ -35,12 +35,11 @@ class MyPylips(Pylips):
         with open(os.path.dirname(os.path.realpath(__file__))+"/available_commands.json") as json_file:
             self.available_commands = json.load(json_file)
 
-
     def my_start(self):
         if 'standby' in self.run_command('powerstate').lower():
             logger.debug('starting tv')
             self.run_command('standby')
-            time.sleep(3)
+            time.sleep(5)
         else:
             logger.debug('tv already on')
 
@@ -58,7 +57,7 @@ class MyPylips(Pylips):
                            '{"id":"org.xbmc.kodi","order":0,"intent":{"action":"Intent{act=android.intent.action.MAIN cat=[android.intent.category.LAUNCHER] flg=0x10000000 pkg=org.xbmc.kodi }","component":{"packageName":"org.xbmc.kodi","className":"org.xbmc.kodi.Splash"}},"label":"Kodi"}')
 
     def my_turn_off(self):
-        if self.run_command('powerstate') == 'On':
+        if 'on' in self.run_command('powerstate').lower():
             self.run_command('standby')
 
 
@@ -80,32 +79,44 @@ class MyKodi():
 
     def open_media(self, url=''):
         time.sleep(1)
-        self.kodi.Player.Open(item={"file": url})
+        self.kodi.Player.Open(item={"file": url.decode()})
 
     def open_channel(self, channel_id=0):
         time.sleep(1)
         self.kodi.Player.Open(item={"channelid": channel_id})
 
 
-def start_fire(message):
-    logger.debug(f'start_fire arg {message}')
+def start_media(message='smb://10.1.1.5/multimedia/Mixed/Fire-Fish/Fireplace.mkv'):
+    logger.debug(f'tv start media arg {message}')
     tv = MyPylips()
     tv.my_start()
     tv.my_launch_kodi()
     kodi = MyKodi()
-    kodi.wait_until_started()
-    kodi.open_media('smb://10.1.1.5/multimedia/Mixed/Fire-Fish/Fireplace.mkv')
+    status = kodi.wait_until_started()
+    if status is False:
+        return
+    kodi.open_media(message)
 
 
-def start_children_tv(message):
-    logger.debug(f'start_fire arg {message}')
+def start_channel(message='248'):
+    logger.debug(f'tv start channel arg {message}')
     tv = MyPylips()
     tv.my_start()
     tv.my_launch_kodi()
     kodi = MyKodi()
-    kodi.wait_until_started()
-    kodi.open_channel(248)
+    status = kodi.wait_until_started()
+    if status is False:
+        return
+    kodi.open_channel(int(message))
     # To find channel: kodi.Player.GetItem(playerid=1)
+
+
+def command(message='turn_off'):
+    logger.debug(f'tv command arg {message}')
+    if 'turn_off' in message.decode():
+        tv = MyPylips()
+        tv.my_turn_off()
+
 
 
 
