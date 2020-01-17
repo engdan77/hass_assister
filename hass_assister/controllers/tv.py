@@ -39,7 +39,7 @@ class MyPylips(Pylips):
         if 'standby' in self.run_command('powerstate').lower():
             logger.debug('starting tv')
             self.run_command('standby')
-            time.sleep(5)
+            time.sleep(10)
         else:
             logger.debug('tv already on')
 
