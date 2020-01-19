@@ -6,6 +6,9 @@ from nested_lookup import nested_lookup
 import fs
 import yaml
 from urllib.parse import urlparse
+from smb.smb_structs import OperationFailure
+
+)
 
 class HassInstance(object):
     def __init__(self, url: str,
@@ -43,13 +46,16 @@ class HassInstance(object):
             logger.error(f'invalid JSON from HASS {e}')
             logger.debug(f'{response}')
 
-
     def update_configuration(self):
         host = urlparse(self.url).netloc.split(':')[0]
         try:
-            f = fs.open_fs(f'smb://{host}/{self.share}').open('configuration.yaml').read().replace('!', '')
+            share = f'smb://{host}/{self.share}'
+            logger.debug(f'trying to access {share} to read configuration.yaml')
+            f = fs.open_fs(share).open('configuration.yaml').read().replace('!', '')
         except fs.errors.CreateFailed:
             logger.error('unable to connect to HASS using smb, please verify hostname')
+        except smb.smb_structs.OperationFailure:
+            logger.error(f'there has to be a share named homeassistant for {host}')
         else:
             self.config = yaml.load(f, Loader=yaml.FullLoader)
 
