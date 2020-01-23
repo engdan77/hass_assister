@@ -6,10 +6,10 @@ import os
 import json
 import time
 import requests
-
 from hass_assister.controllers.pylips import Pylips
 from kodijson import Kodi
 from loguru import logger
+import asyncio
 
 
 class MyPylips(Pylips):
@@ -86,36 +86,39 @@ class MyKodi():
         self.kodi.Player.Open(item={"channelid": channel_id})
 
 
-def start_media(message='smb://10.1.1.5/multimedia/Mixed/Fire-Fish/Fireplace.mkv'):
+async def start_media(message='smb://foo/bar.mp4', **kwargs):
+    loop = asyncio.get_running_loop()
     logger.debug(f'tv start media arg {message}')
-    tv = MyPylips()
-    tv.my_start()
-    tv.my_launch_kodi()
-    kodi = MyKodi()
-    status = kodi.wait_until_started()
+    tv = await loop.run_in_executor(None, MyPylips)
+    await loop.run_in_executor(None, tv.my_start)
+    await loop.run_in_executor(None, tv.my_launch_kodi)
+    kodi = await loop.run_in_executor(None, MyKodi)
+    status = await loop.run_in_executor(None kodi.wait_until_started)
     if status is False:
         return
-    kodi.open_media(message)
+    await loop.run_in_executor(None, kodi.open_media, message)
 
 
-def start_channel(message='248'):
+async def start_channel(message='1', **kwargs):
+    loop = asyncio.get_running_loop()
     logger.debug(f'tv start channel arg {message}')
-    tv = MyPylips()
-    tv.my_start()
-    tv.my_launch_kodi()
-    kodi = MyKodi()
-    status = kodi.wait_until_started()
+    tv = await loop.run_in_executor(None, MyPylips)
+    await loop.run_in_executor(None, tv.my_start)
+    await loop.run_in_executor(tv.my_launch_kodi)
+    kodi = await loop.run_in_executor(None, MyKodi)
+    status = await loop.run_in_executor(None, kodi.wait_until_started)
     if status is False:
         return
-    kodi.open_channel(int(message))
+    loop.run_in_executor(None, kodi.open_channel, int(message))
     # To find channel: kodi.Player.GetItem(playerid=1)
 
 
-def command(message='turn_off'):
+async def command(message='turn_off', **kwargs):
+    loop = asyncio.get_running_loop()
     logger.debug(f'tv command arg {message}')
     if 'turn_off' in message.decode():
-        tv = MyPylips()
-        tv.my_turn_off()
+        tv = await loop.run_in_executor(None, MyPylips)
+        await loop.run_in_executor(tv.my_turn_off)
 
 
 

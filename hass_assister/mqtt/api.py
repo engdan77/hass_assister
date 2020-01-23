@@ -57,7 +57,6 @@ class MyMQTT(object):
 
         loop.create_task(self.start(self.broker))
 
-
     async def start(self, broker):
         logger.info('starting mqtt')
         try:
