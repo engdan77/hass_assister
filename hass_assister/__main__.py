@@ -33,7 +33,8 @@ default_config = {
     'kodi_display': {'initial': ip_device.copy()},
     'mqtt_functions': {'initial': {'tv_start_media': 'hass_assister.controllers.tv.start_media',
                                    'tv_start_channel': 'hass_assister.controllers.tv.start_channel',
-                                   'tv_command': 'hass_assister.controllers.tv.command'}}
+                                   'tv_command': 'hass_assister.controllers.tv.command',
+                                   'lights_control': 'hass_assister.controllers.light.control_lights'}}
 }
 
 app = FastAPI()
