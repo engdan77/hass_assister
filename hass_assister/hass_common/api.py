@@ -8,7 +8,6 @@ import yaml
 from urllib.parse import urlparse
 from smb.smb_structs import OperationFailure
 
-)
 
 class HassInstance(object):
     def __init__(self, url: str,

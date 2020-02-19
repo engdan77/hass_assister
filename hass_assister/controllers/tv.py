@@ -93,7 +93,7 @@ async def start_media(message='smb://foo/bar.mp4', **kwargs):
     await loop.run_in_executor(None, tv.my_start)
     await loop.run_in_executor(None, tv.my_launch_kodi)
     kodi = await loop.run_in_executor(None, MyKodi)
-    status = await loop.run_in_executor(None kodi.wait_until_started)
+    status = await loop.run_in_executor(None, kodi.wait_until_started)
     if status is False:
         return
     await loop.run_in_executor(None, kodi.open_media, message)
