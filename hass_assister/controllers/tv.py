@@ -39,8 +39,15 @@ class MyPylips(Pylips):
         power_state = self.run_command("powerstate").lower()
         logger.debug(f'my_start: {power_state}')
         if 'error' in power_state:
-            logger.warning(f'error occured while starting tv')
-            return False
+            logger.warning(f'error occurred while starting tv')
+            time.sleep(1)
+            logger.debug('will try power_on instead')
+            self.run_command('power_on')
+            time.sleep(10)
+            logger.debug('trying to get power state again')
+            power_state = self.run_command("powerstate").lower()
+            logger.debug(f'power state now being {power_state}')
+            return 'error' not in power_state
         if 'standby' in power_state:
             logger.debug('starting tv')
             self.run_command('standby')
