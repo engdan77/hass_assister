@@ -36,15 +36,21 @@ class MyPylips(Pylips):
             self.available_commands = json.load(json_file)
 
     def my_start(self):
-        logger.debug(f'my_start: {self.run_command("powerstate").lower()}')
-        if 'standby' in self.run_command('powerstate').lower():
+        power_state = self.run_command("powerstate").lower()
+        logger.debug(f'my_start: {power_state}')
+        if 'error' in power_state:
+            logger.warning(f'error occured while starting tv')
+            return False
+        if 'standby' in power_state:
             logger.debug('starting tv')
             self.run_command('standby')
             time.sleep(10)
-        else:
+        if 'on' in power_state:
             logger.debug('tv already on')
             time.sleep(3)
-        logger.debug(f'tv status after start {self.run_command("powerstate").lower()}')
+        power_state = self.run_command("powerstate").lower()
+        logger.debug(f'tv status after start {power_state}')
+        return True
 
     def my_launch_kodi(self, max_time=10):
         for _ in range(max_time):
@@ -92,10 +98,13 @@ class MyKodi():
 
 async def start_media(message='smb://foo/bar.mp4', **kwargs):
     loop = asyncio.get_running_loop()
-    logger.debug(f'tv start media arg {message}')
+    logger.debug(f'tv start media arg: {message}')
     tv = await loop.run_in_executor(None, MyPylips)
     logger.debug('starting tv')
-    await loop.run_in_executor(None, tv.my_start)
+    tv_started = await loop.run_in_executor(None, tv.my_start)
+    if not tv_started:
+        logger.warning('abort starting kodi due to tv not started')
+        return False
     logger.debug('starting kodi')
     await loop.run_in_executor(None, tv.my_launch_kodi)
     kodi = await loop.run_in_executor(None, MyKodi)
@@ -106,6 +115,7 @@ async def start_media(message='smb://foo/bar.mp4', **kwargs):
         return
     logger.debug(f'starting media {message}')
     await loop.run_in_executor(None, kodi.open_media, message)
+    return True
 
 
 async def start_channel(message='1', **kwargs):
