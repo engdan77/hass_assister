@@ -8,6 +8,8 @@ async def get_all_lights(hass):
 
 async def control_lights(message, **kwargs):
     hass = kwargs.get('hass', None)
+    if isinstance(message, bytes):
+        message = message.decode()
     if message not in ('turn_on', 'turn_off'):
         logger.warning(f'supplied {message} but expected turn_on/off')
         return
