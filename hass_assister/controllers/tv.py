@@ -36,16 +36,20 @@ class MyPylips(Pylips):
             self.available_commands = json.load(json_file)
 
     def my_start(self):
+        logger.debug(f'my_start: {self.run_command("powerstate").lower()}')
         if 'standby' in self.run_command('powerstate').lower():
             logger.debug('starting tv')
             self.run_command('standby')
             time.sleep(10)
         else:
             logger.debug('tv already on')
+            time.sleep(3)
+        logger.debug(f'tv status after start {self.run_command("powerstate").lower()}')
 
     def my_launch_kodi(self, max_time=10):
         for _ in range(max_time):
-            logger.debug(f'waiting for TV to start {_}/{max_time}')
+            logger.debug(f'my_launch_kodi: waiting for TV to start {_}/{max_time}')
+            logger.debug(f'my_launch_kodi: {self.run_command("powerstate").lower()}')
             if 'on' in self.run_command('powerstate').lower():
                 break
             time.sleep(2)
@@ -79,7 +83,7 @@ class MyKodi():
 
     def open_media(self, url=''):
         time.sleep(1)
-        self.kodi.Player.Open(item={"file": url.decode()})
+        self.kodi.Player.Open(item={"file": url.decode() if isinstance(url, bytes) else url})
 
     def open_channel(self, channel_id=0):
         time.sleep(1)
@@ -90,12 +94,17 @@ async def start_media(message='smb://foo/bar.mp4', **kwargs):
     loop = asyncio.get_running_loop()
     logger.debug(f'tv start media arg {message}')
     tv = await loop.run_in_executor(None, MyPylips)
+    logger.debug('starting tv')
     await loop.run_in_executor(None, tv.my_start)
+    logger.debug('starting kodi')
     await loop.run_in_executor(None, tv.my_launch_kodi)
     kodi = await loop.run_in_executor(None, MyKodi)
+    logger.debug('waiting for kodi to start')
     status = await loop.run_in_executor(None, kodi.wait_until_started)
     if status is False:
+        logger.debug('kodi not started in time')
         return
+    logger.debug(f'starting media {message}')
     await loop.run_in_executor(None, kodi.open_media, message)
 
 
@@ -119,8 +128,3 @@ async def command(message='turn_off', **kwargs):
     if 'turn_off' in message.decode():
         tv = await loop.run_in_executor(None, MyPylips)
         await loop.run_in_executor(tv.my_turn_off)
-
-
-
-
-

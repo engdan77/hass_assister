@@ -7,6 +7,7 @@ import urllib3
 import requests
 import datetime
 from hass_assister.helper import import_item
+from functools import partial
 
 REPLACE_TEXT = {('light', 'coffee'): {r'\b1\b': 'ON',
                                       r'\b0\b': 'OFF'},
@@ -106,6 +107,7 @@ def send_kodi_message(address, port, data):
 async def on_hass_mqtt_message(client, topic, payload, qos, properties):
     logger.debug(f'Incoming MQTT topic:{topic}, payload:{payload}, qos:{qos}, properties:{properties}')
     hass = client.properties.get('hass_ref')
+    loop = client._connected._loop
     # hass.attributes = states of entities (entity_id, state)
     if hass:
         entity = hass.get_entity_info(topic)
@@ -123,7 +125,6 @@ async def on_hass_mqtt_message(client, topic, payload, qos, properties):
         if kodi_display_settings['enabled']:
             address = kodi_display_settings['address']
             port = kodi_display_settings['port']
-            loop = client._connected._loop
             blocking_call = loop.run_in_executor(None, send_kodi_message, address, port, (e, m))
             completed, pending = await asyncio.wait([blocking_call])
     else:
@@ -133,4 +134,9 @@ async def on_hass_mqtt_message(client, topic, payload, qos, properties):
         if t in mqtt_functions.keys():
             logger.info(f'found {t} in mqtt topic and will run {mqtt_functions[t]}({payload})')
             f = import_item(mqtt_functions[t])
-            f(payload, hass=hass)
+            # f(payload, hass=hass)
+            f_with_args = partial(f, payload, hass=hass)
+            logger.debug(f'awaiting {f_with_args}')
+            await f()
+            # task = asyncio.create_task(f_with_args())
+            # await loop.run_in_executor(None, f_with_args)
