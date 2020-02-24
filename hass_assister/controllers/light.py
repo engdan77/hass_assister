@@ -1,5 +1,6 @@
 import magichue
 from loguru import logger
+import aiohttp
 
 
 async def aiter(iterable):
@@ -7,8 +8,14 @@ async def aiter(iterable):
         yield item
 
 
-async def get_all_lights(hass):
-    return [i['entity_id'] async for i in aiter(hass) if i['state'] in ('on', 'off') and 'light' in i['entity_id'].lower()]
+def get_all_lights(hass):
+    lights = []
+    for domain in ('switch', 'light'):
+        for device in hass.config.get(domain, []):
+            name = device.get('name', '')
+            if 'light' in name:
+                lights.append(f'{domain}.{name.replace(" ", "_").lower()}')
+    return lights
 
 
 async def control_lights(message, **kwargs):
@@ -23,7 +30,7 @@ async def control_lights(message, **kwargs):
         return
     devices = get_all_lights(hass)
     logger.debug(f'found following light {devices}')
-    async for entity in devices:
+    async for entity in aiter(devices):
         domain, *_ = entity.split('.')
         q = f'{hass.url.strip("/")}/api/services/{domain}/{message}'
         logger.debug(f'query {q}')
