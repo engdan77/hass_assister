@@ -16,6 +16,7 @@ requests==2.21.0
 kodi-json==1.0.0
 pycryptodome==3.9.4
 python-magichue==0.2.7
+wakeonlan==1.1.6
 
 
 

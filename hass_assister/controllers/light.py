@@ -2,8 +2,13 @@ import magichue
 from loguru import logger
 
 
+async def aiter(iterable):
+    for item in iterable:
+        yield item
+
+
 async def get_all_lights(hass):
-    return [i['entity_id'] async for i in hass if i['state'] in ('on', 'off') and 'light' in i['entity_id'].lower()]
+    return [i['entity_id'] async for i in aiter(hass) if i['state'] in ('on', 'off') and 'light' in i['entity_id'].lower()]
 
 
 async def control_lights(message, **kwargs):

@@ -10,6 +10,7 @@ from hass_assister.controllers.pylips import Pylips
 from kodijson import Kodi
 from loguru import logger
 import asyncio
+from wakeonlan import send_magic_packet
 
 
 class MyPylips(Pylips):
@@ -42,7 +43,11 @@ class MyPylips(Pylips):
             logger.warning(f'error occurred while starting tv')
             time.sleep(1)
             logger.debug('will try power_on instead')
-            self.run_command('power_on')
+            try:
+                self.run_command('power_on')
+            except requests.exceptions.ConnectTimeout as e:
+                logger.warning(f'unable to connect to TV, should try WOL {e}')
+                send_magic_packet('b0:b9:8a:5c:93:a4')
             time.sleep(10)
             logger.debug('trying to get power state again')
             power_state = self.run_command("powerstate").lower()
@@ -130,7 +135,7 @@ async def start_channel(message='1', **kwargs):
     logger.debug(f'tv start channel arg {message}')
     tv = await loop.run_in_executor(None, MyPylips)
     await loop.run_in_executor(None, tv.my_start)
-    await loop.run_in_executor(tv.my_launch_kodi)
+    await loop.run_in_executor(None, tv.my_launch_kodi)
     kodi = await loop.run_in_executor(None, MyKodi)
     status = await loop.run_in_executor(None, kodi.wait_until_started)
     if status is False:
