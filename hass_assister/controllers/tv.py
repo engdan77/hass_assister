@@ -11,6 +11,7 @@ from kodijson import Kodi
 from loguru import logger
 import asyncio
 from wakeonlan import send_magic_packet
+import urllib3
 
 
 class MyPylips(Pylips):
@@ -44,10 +45,17 @@ class MyPylips(Pylips):
             time.sleep(1)
             logger.debug('will try power_on instead')
             try:
+                self.run_command('allow_power_on')
+                time.sleep(2)
                 self.run_command('power_on')
-            except requests.exceptions.ConnectTimeout as e:
+            except (OSError,
+                    requests.exceptions.ConnectTimeout,
+                    urllib3.exceptions.NewConnectionError,
+                    urllib3.exceptions.MaxRetryError,
+                    requests.exceptions.ConnectionError) as e:
                 logger.warning(f'unable to connect to TV, should try WOL {e}')
-                send_magic_packet('b0:b9:8a:5c:93:a4')
+                logger.warning('skipping WOL')
+                # send_magic_packet('b0:b9:8a:5c:93:a4')
             time.sleep(10)
             logger.debug('trying to get power state again')
             power_state = self.run_command("powerstate").lower()
