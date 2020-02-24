@@ -38,6 +38,8 @@ class MyPylips(Pylips):
             self.available_commands = json.load(json_file)
 
     def my_start(self):
+        logger.info(f'will attempt to WakeOnLan')
+        send_magic_packet('54:2A:A2:C8:3A:EE')
         power_state = self.run_command("powerstate").lower()
         logger.debug(f'my_start: {power_state}')
         if 'error' in power_state:
@@ -53,9 +55,7 @@ class MyPylips(Pylips):
                     urllib3.exceptions.NewConnectionError,
                     urllib3.exceptions.MaxRetryError,
                     requests.exceptions.ConnectionError) as e:
-                logger.warning(f'unable to connect to TV, should try WOL {e}')
-                logger.warning('skipping WOL')
-                # send_magic_packet('b0:b9:8a:5c:93:a4')
+                logger.info(f'unable to connect to TV with {e}')
             time.sleep(10)
             logger.debug('trying to get power state again')
             power_state = self.run_command("powerstate").lower()
