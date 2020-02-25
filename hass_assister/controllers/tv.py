@@ -148,7 +148,7 @@ async def start_channel(message='1', **kwargs):
     status = await loop.run_in_executor(None, kodi.wait_until_started)
     if status is False:
         return
-    loop.run_in_executor(None, kodi.open_channel, int(message))
+    await loop.run_in_executor(None, kodi.open_channel, int(message))
     # To find channel: kodi.Player.GetItem(playerid=1)
 
 
@@ -157,4 +157,4 @@ async def command(message='turn_off', **kwargs):
     logger.debug(f'tv command arg {message}')
     if 'turn_off' in message.decode():
         tv = await loop.run_in_executor(None, MyPylips)
-        await loop.run_in_executor(tv.my_turn_off)
+        await loop.run_in_executor(None, tv.my_turn_off)
