@@ -12,9 +12,14 @@ def get_all_lights(hass):
     lights = []
     for domain in ('switch', 'light'):
         for device in hass.config.get(domain, []):
-            name = device.get('name', '')
-            if 'light' in name:
+            if 'devices' in device:
+                for subdevice in device.get('devices', {}).values():
+                    name = subdevice.get('name', '')
+            else:
+                name = device.get('name', '')
+            if 'light' in name or 'lamp' in name:
                 lights.append(f'{domain}.{name.replace(" ", "_").lower()}')
+    logger.debug(f'found following lights {lights}')
     return lights
 
 
