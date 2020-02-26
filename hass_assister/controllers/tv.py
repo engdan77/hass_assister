@@ -40,6 +40,10 @@ class MyPylips(Pylips):
     def my_start(self):
         logger.info(f'will attempt to WakeOnLan')
         send_magic_packet('54:2A:A2:C8:3A:EE')
+        time.sleep(3)
+        logger.debug('attempt to wake TV by ChromeCatst')
+        requests.post('http://10.1.1.4:8008/apps/ChromeCast')
+        time.sleep(1)
         power_state = self.run_command("powerstate").lower()
         logger.debug(f'my_start: {power_state}')
         if 'error' in power_state:
@@ -56,6 +60,7 @@ class MyPylips(Pylips):
                     urllib3.exceptions.MaxRetryError,
                     requests.exceptions.ConnectionError) as e:
                 logger.info(f'unable to connect to TV with {e}')
+                requests.post()
             time.sleep(10)
             logger.debug('trying to get power state again')
             power_state = self.run_command("powerstate").lower()
