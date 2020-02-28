@@ -9,6 +9,7 @@ from .hass_common import HassInstance
 from .mqtt import MyMQTT
 import asyncio
 import sys
+from pprint import pprint as pp
 
 
 default_initial_scheduled_tasks = [
@@ -29,6 +30,10 @@ default_config = {
     'mqtt_user': {'initial': ''},
     'mqtt_password': {'initial': ''},
     'initial_scheduled_tasks': {'initial': default_initial_scheduled_tasks},
+    'philips_ip': {'initial': ''},
+    'philips_user': {'initial': ''},
+    'philips_password': {'initial': ''},
+    'philips_mac': {'initial': ''},
     'dummy_display': {'initial': ip_device.copy()},
     'kodi_display': {'initial': ip_device.copy()},
     'mqtt_functions': {'initial': {'tv_start_media': 'hass_assister.controllers.tv.start_media',
@@ -60,6 +65,7 @@ def main():
 
     # configuration
     c = init_settings(default_config)
+    logger.debug(f'using following configuration:\n{c}')
 
     # configure uvicorn
     config = uvicorn.Config(app, host='0.0.0.0', port=8000)

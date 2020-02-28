@@ -12,10 +12,12 @@ from loguru import logger
 import asyncio
 from wakeonlan import send_magic_packet
 import urllib3
+from functools import partial
 
 
 class MyPylips(Pylips):
-    def __init__(self, host='10.1.1.4', user='EhlqVjhh0aoAdYMR', pwd='3975436a69392115aee33573aef4dbe7e59c79f5a61ae681008075e46911b3e3'):
+    def __init__(self, host='10.1.1.4', user='EhlqVjhh0aoAdYMR', pwd='3975436a69392115aee33573aef4dbe7e59c79f5a61ae681008075e46911b3e3', mac='54:2A:A2:C8:3A:EE'):
+        self.mac = mac
         self.config = {
             'DEFAULT': {
                 'verbose': True,
@@ -39,10 +41,10 @@ class MyPylips(Pylips):
 
     def my_start(self):
         logger.info(f'will attempt to WakeOnLan')
-        send_magic_packet('54:2A:A2:C8:3A:EE')
+        send_magic_packet(self.mac)
         time.sleep(3)
         logger.debug('attempt to wake TV by ChromeCatst')
-        requests.post('http://10.1.1.4:8008/apps/ChromeCast')
+        requests.post(f'http://{self.host}:8008/apps/ChromeCast')
         time.sleep(1)
         power_state = self.run_command("powerstate").lower()
         logger.debug(f'my_start: {power_state}')
@@ -124,7 +126,8 @@ class MyKodi():
 async def start_media(message='smb://foo/bar.mp4', **kwargs):
     loop = asyncio.get_running_loop()
     logger.debug(f'tv start media arg: {message}')
-    tv = await loop.run_in_executor(None, MyPylips)
+    c = kwargs.get('app_config', None)
+    tv = await loop.run_in_executor(None, MyPylips, c['philips_ip'], c['philips_user'], c['philips_password'], c['philips_mac'])
     logger.debug('starting tv')
     tv_started = await loop.run_in_executor(None, tv.my_start)
     if not tv_started:
@@ -146,6 +149,8 @@ async def start_media(message='smb://foo/bar.mp4', **kwargs):
 async def start_channel(message='1', **kwargs):
     loop = asyncio.get_running_loop()
     logger.debug(f'tv start channel arg {message}')
+    # TODO: Add arguments user, password and mac to tv
+    mypylips_with_args = partial(MyPylips, host='', user='', pwd='', mac='')
     tv = await loop.run_in_executor(None, MyPylips)
     await loop.run_in_executor(None, tv.my_start)
     await loop.run_in_executor(None, tv.my_launch_kodi)

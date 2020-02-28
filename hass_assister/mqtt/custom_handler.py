@@ -107,6 +107,7 @@ def send_kodi_message(address, port, data):
 async def on_hass_mqtt_message(client, topic, payload, qos, properties):
     logger.debug(f'Incoming MQTT topic:{topic}, payload:{payload}, qos:{qos}, properties:{properties}')
     hass = client.properties.get('hass_ref')
+    app_config = client.properties.get('app_config')
     loop = client._connected._loop
     # hass.attributes = states of entities (entity_id, state)
     if hass:
@@ -134,9 +135,5 @@ async def on_hass_mqtt_message(client, topic, payload, qos, properties):
         if t in mqtt_functions.keys():
             logger.info(f'found {t} in mqtt topic and will run {mqtt_functions[t]}({payload})')
             f = import_item(mqtt_functions[t])
-            # f(payload, hass=hass)
-            # f_with_args = partial(f, payload, hass=hass)
             logger.debug(f'awaiting {f}')
-            await f(payload, hass=hass)
-            # task = asyncio.create_task(f_with_args())
-            # await loop.run_in_executor(None, f_with_args)
+            await f(payload, hass=hass, app_config=app_config)

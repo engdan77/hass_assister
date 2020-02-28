@@ -26,4 +26,10 @@ def init_settings(_default_config_params):
             initials['default'] = initials['initial']
         conf[param] = functools.partial(getattr(conf_obj, param), **initials)()
     logger.info(f'configuration loaded {conf}')
+    # check for new settings
+    old_settings = conf_obj._config
+    for k, v in conf.items():
+        if k not in old_settings:
+            logger.warning(f'new setting added to config {k}')
+            setattr(conf_obj, k, v)
     return conf
