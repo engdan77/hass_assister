@@ -44,9 +44,7 @@ class MyPylips(Pylips):
         logger.info(f'will attempt to WakeOnLan on mac "{self.mac}" the type {type(self.mac)} is same {"54:2A:A2:C8:3A:EE" == self.mac}')
         # send_magic_packet('54:2A:A2:C8:3A:EE')
         send_magic_packet(self.mac)
-        time.sleep(1)
-        send_magic_packet(self.mac)
-        time.sleep(2)
+        time.sleep(5)
         url = f'http://{self.host}:8008/apps/ChromeCast'
         logger.debug(f'attempt to wake TV by ChromeCast using url {url}')
         requests.post(url)
