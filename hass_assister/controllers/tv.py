@@ -41,11 +41,12 @@ class MyPylips(Pylips):
             self.available_commands = json.load(json_file)
 
     def my_start(self):
-        logger.info(f'will attempt to WakeOnLan')
+        logger.info(f'will attempt to WakeOnLan on mac {self.mac}')
         send_magic_packet(self.mac)
         time.sleep(3)
-        logger.debug('attempt to wake TV by ChromeCatst')
-        requests.post(f'http://{self.host}:8008/apps/ChromeCast')
+        url = f'http://{self.host}:8008/apps/ChromeCast'
+        logger.debug(f'attempt to wake TV by ChromeCast using url {url}')
+        requests.post(url)
         time.sleep(1)
         power_state = self.run_command("powerstate").lower()
         logger.debug(f'my_start: {power_state}')
