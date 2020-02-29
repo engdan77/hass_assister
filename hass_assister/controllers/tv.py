@@ -18,6 +18,7 @@ from functools import partial
 class MyPylips(Pylips):
     def __init__(self, host='10.1.1.4', user='EhlqVjhh0aoAdYMR', pwd='3975436a69392115aee33573aef4dbe7e59c79f5a61ae681008075e46911b3e3', mac='54:2A:A2:C8:3A:EE'):
         self.mac = mac
+        self.host = host
         self.config = {
             'DEFAULT': {
                 'verbose': True,

@@ -1,6 +1,7 @@
 import functools
 import os
 from pathlib import Path
+import tempfile
 
 import easyconf
 from appdirs import user_config_dir
@@ -28,8 +29,13 @@ def init_settings(_default_config_params):
     logger.info(f'configuration loaded {conf}')
     # check for new settings
     old_settings = conf_obj._config
+    new_temp = Path(base_config_dir) / Path(f'{next(tempfile._get_candidate_names())}.yaml')
+    new_settings = easyconf.Config(str(new_temp))
     for k, v in conf.items():
+        getattr(new_settings, k)(initial=v)
         if k not in old_settings:
             logger.warning(f'new setting added to config {k}')
-            setattr(conf_obj, k, v)
+    del conf_obj
+    del new_settings
+    new_temp.replace(conf_path)
     return conf
