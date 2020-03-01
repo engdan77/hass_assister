@@ -1,13 +1,12 @@
 from loguru import logger
 import subprocess
 import json
-import re
 import asyncio
 import urllib3
 import requests
 import datetime
 from hass_assister.helper import import_item
-from functools import partial
+import re
 
 REPLACE_TEXT = {('light', 'coffee'): {r'\b1\b': 'ON',
                                       r'\b0\b': 'OFF'},
@@ -22,6 +21,18 @@ REPLACE_TEXT = {('light', 'coffee'): {r'\b1\b': 'ON',
 
 EXCLUDE_TEXT = ('RF Bridge 0',
                 'rf bridge Motion Livingroom')
+
+
+def replace_mqtt_message(from_topic, to_topic=None, input_topic=None, from_message=None, to_message=None, input_message=None):
+    if not re.match(from_topic, input_topic, re.IGNORECASE):
+        return None
+    output_topic = re.sub(from_topic, to_topic, input_topic, re.IGNORECASE)
+    if to_message:
+        output_message = re.sub(from_message, to_message, input_message.decode(), re.IGNORECASE)
+    else:
+        output_message = input_message
+    if not from_topic == to_topic or not from_message == to_message:
+        return output_topic, output_message
 
 
 async def tcp_send(address, port, data, loop=None):
@@ -137,3 +148,17 @@ async def on_hass_mqtt_message(client, topic, payload, qos, properties):
             f = import_item(mqtt_functions[t])
             logger.debug(f'awaiting {f}')
             await f(payload, hass=hass, app_config=app_config)
+    # if MQTT replace is found
+    mqtt_replacement_setting = client.properties['app_config'].get('mqtt_replacement', {})
+    for (from_topic, from_message), (to_topic, to_message) in mqtt_replacement_setting.items():
+        if re.match(from_topic, topic, re.IGNORECASE):
+            new_topic, new_payload = replace_mqtt_message(from_topic,
+                                                          to_topic,
+                                                          topic,
+                                                          from_message,
+                                                          to_message,
+                                                          payload)
+            # logger.debug(from_topic, from_message, to_topic, to_message)
+            logger.debug(f'sneding {new_topic} with {new_payload}')
+            client.publish(new_topic, new_payload)
+

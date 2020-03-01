@@ -39,7 +39,8 @@ default_config = {
     'mqtt_functions': {'initial': {'tv_start_media': 'hass_assister.controllers.tv.start_media',
                                    'tv_start_channel': 'hass_assister.controllers.tv.start_channel',
                                    'tv_command': 'hass_assister.controllers.tv.command',
-                                   'lights_control': 'hass_assister.controllers.light.control_lights'}}
+                                   'lights_control': 'hass_assister.controllers.light.control_lights'}},
+    'mqtt_replacement': {'initial': {('from/topic_(..)', 'from_message'): ('/to_topic_\\1', 'to_message')}}
 }
 
 app = FastAPI()
