@@ -27,7 +27,8 @@ async def control_lights(message, **kwargs):
     hass = kwargs.get("hass", None)
     if isinstance(message, bytes):
         message = message.decode()
-    if message not in ("turn_on", "turn_off"):
+        cmd, *only_devices = message.rsplit('_', message.count('_') - 1)
+    if cmd not in ("turn_on", "turn_off"):
         logger.warning(f"supplied {message} but expected turn_on/off")
         return
     if not hass:
@@ -36,8 +37,13 @@ async def control_lights(message, **kwargs):
     devices = get_all_lights(hass)
     logger.debug(f"found following light {devices}")
     async for entity in aiter(devices):
+        if only_devices:
+            found = any([True for d in only_devices if d in entity])
+            if not found:
+                logger.debug(f'skipping {entity} because limiting to {only_devices}')
+                continue
         domain, *_ = entity.split(".")
-        q = f'{hass.url.strip("/")}/api/services/{domain}/{message}'
+        q = f'{hass.url.strip("/")}/api/services/{domain}/{cmd}'
         logger.debug(f"query {q}")
         try:
             async with aiohttp.ClientSession() as s, s.post(
