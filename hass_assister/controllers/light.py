@@ -10,45 +10,48 @@ async def aiter(iterable):
 
 def get_all_lights(hass):
     lights = []
-    for domain in ('switch', 'light'):
+    for domain in ("switch", "light"):
         for device in hass.config.get(domain, []):
-            if 'devices' in device:
-                for subdevice in device.get('devices', {}).values():
-                    name = subdevice.get('name', '')
+            if "devices" in device:
+                for subdevice in device.get("devices", {}).values():
+                    name = subdevice.get("name", "")
             else:
-                name = device.get('name', '')
-            if 'light' in name or 'lamp' in name:
+                name = device.get("name", "")
+            if "light" in name or "lamp" in name:
                 lights.append(f'{domain}.{name.replace(" ", "_").lower()}')
-    logger.debug(f'found following lights {lights}')
+    logger.debug(f"found following lights {lights}")
     return lights
 
 
 async def control_lights(message, **kwargs):
-    hass = kwargs.get('hass', None)
+    hass = kwargs.get("hass", None)
     if isinstance(message, bytes):
         message = message.decode()
-    if message not in ('turn_on', 'turn_off'):
-        logger.warning(f'supplied {message} but expected turn_on/off')
+    if message not in ("turn_on", "turn_off"):
+        logger.warning(f"supplied {message} but expected turn_on/off")
         return
     if not hass:
-        logger.warning('there are no hass device list available, aborting')
+        logger.warning("there are no hass device list available, aborting")
         return
     devices = get_all_lights(hass)
-    logger.debug(f'found following light {devices}')
+    logger.debug(f"found following light {devices}")
     async for entity in aiter(devices):
-        domain, *_ = entity.split('.')
+        domain, *_ = entity.split(".")
         q = f'{hass.url.strip("/")}/api/services/{domain}/{message}'
-        logger.debug(f'query {q}')
+        logger.debug(f"query {q}")
         try:
-            async with aiohttp.ClientSession() as s, \
-                    s.post(q, headers={'Authorization': f'Bearer {hass.auth_token}'}, json={'entity_id': entity}) as response:
+            async with aiohttp.ClientSession() as s, s.post(
+                q,
+                headers={"Authorization": f"Bearer {hass.auth_token}"},
+                json={"entity_id": entity},
+            ) as response:
                 r = await response.json()
-                logger.debug(f'response: {r}')
+                logger.debug(f"response: {r}")
         except aiohttp.ClientConnectorError as e:
-            logger.error(f'failed connecting to {q} with error {e}')
+            logger.error(f"failed connecting to {q} with error {e}")
         except aiohttp.ContentTypeError as e:
-            logger.error(f'invalid JSON from HASS {e}')
-            logger.debug(f'{response}')
+            logger.error(f"invalid JSON from HASS {e}")
+            logger.debug(f"{response}")
 
 
 def check_light(host, **kwargs):
