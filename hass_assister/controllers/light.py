@@ -38,9 +38,14 @@ async def control_lights(message, **kwargs):
     logger.debug(f"found following light {devices}")
     async for entity in aiter(devices):
         if only_devices:
-            found = any([True for d in only_devices if d in entity])
-            if not found:
-                logger.debug(f'skipping {entity} because limiting to {only_devices}')
+            if not any([_ in only_devices for _ in ('and', 'or')]):
+                operator = 'and'
+            else:
+                operator = only_devices.pop(0)
+            op = {'and': all, 'or': any}.get(operator, any)
+            c = [True for d in only_devices if d in entity]
+            if not op(c) or not c:
+                logger.debug(f'skipping "{entity}" because limiting to {only_devices} with operator {op.__name__}')
                 continue
         domain, *_ = entity.split(".")
         q = f'{hass.url.strip("/")}/api/services/{domain}/{cmd}'
