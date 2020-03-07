@@ -42,6 +42,7 @@ async def control_lights(message, max_count=100, **kwargs):
         hass.states['cycle_light_enabled'] = False
     if cmd == 'start_cycle':
         logger.info('starting light cycle')
+        hass.states['blink_light_enabled'] = False
         hass.states['cycle_light_enabled'] = True
         # turn all off first
         await all_lights(devices, hass, 'turn_off')
@@ -58,9 +59,26 @@ async def control_lights(message, max_count=100, **kwargs):
         logger.debug('stop cycle')
         hass.states['blinking_light_enabled'] = False
         await all_lights(devices, hass, 'turn_off')
-        lgger.info('light cycle stopped')
-    if cmd not in ("turn_on", "turn_off", "start_cycle"):
-        logger.warning(f"supplied {message} but expected turn_on, turn_off, start_cycle")
+        logger.info('light cycle stopped')
+    if cmd == 'stop_blink':
+        logger.info('stopping light blink')
+        hass.states['blink_light_enabled'] = False
+    if cmd == 'start_blink':
+        logger.info('starting light blink')
+        hass.states['cycle_light_enabled'] = False
+        hass.states['blink_light_enabled'] = True
+        current_count = 0
+        while current_count <= max_count and hass.states['blink_light_enabled']:
+            current_count += 1
+            await asyncio.sleep(1)
+            await all_lights(devices, hass, 'turn_on')
+            await asyncio.sleep(1)
+            await all_lights(devices, hass, 'turn_off')
+        logger.debug('stop blink')
+        hass.states['blink_light_enabled'] = False
+        logger.info('light blink stopped')
+    if cmd not in ("turn_on", "turn_off", "start_cycle", "blink_light"):
+        logger.warning(f"supplied {message} but expected turn_on, turn_off, start/stop_cycle, start/stop_blink")
         return
     if not hass:
         logger.warning("there are no hass device list available, aborting")

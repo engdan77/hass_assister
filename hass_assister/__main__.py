@@ -45,7 +45,8 @@ default_config = {
     },
 }
 
-states = {'cycle_light_enabled': False}
+states = {'cycle_light_enabled': False,
+          'blink_light_enabled': False}
 
 app = FastAPI()
 
