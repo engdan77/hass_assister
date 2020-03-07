@@ -45,6 +45,8 @@ default_config = {
     },
 }
 
+states = {'cycle_light_enabled': False}
+
 app = FastAPI()
 
 
@@ -89,6 +91,7 @@ def main():
         c["hass_api_key"],
         scheduler=scheduler,
         update_freq=c["hass_update_frequency_seconds"],
+        states=states
     )
 
     # init mqtt

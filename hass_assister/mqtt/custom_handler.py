@@ -184,5 +184,5 @@ async def on_hass_mqtt_message(client, topic, payload, qos, properties):
                 from_topic, to_topic, topic, from_message, to_message, payload
             )
             # logger.debug(from_topic, from_message, to_topic, to_message)
-            logger.debug(f"sneding {new_topic} with {new_payload}")
+            logger.debug(f"sending {new_topic} with {new_payload}")
             client.publish(new_topic, new_payload)

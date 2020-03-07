@@ -11,12 +11,13 @@ from smb.smb_structs import OperationFailure
 
 class HassInstance(object):
     def __init__(
-        self,
-        url: str,
-        auth_token: str,
-        scheduler: Union[MyScheduler, None] = None,
-        share: str = "homeassistant",
-        update_freq: int = 10,
+            self,
+            url: str,
+            auth_token: str,
+            scheduler: Union[MyScheduler, None] = None,
+            share: str = "homeassistant",
+            update_freq: int = 10,
+            states: Dict = {}
     ):
         self.url = url
         self.auth_token = auth_token
@@ -25,6 +26,7 @@ class HassInstance(object):
         self.attributes = None
         self.share = share
         self.config = None
+        self.states = states
 
         logger.debug("initializing HassInstance object")
         if scheduler:
