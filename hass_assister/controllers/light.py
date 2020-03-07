@@ -30,7 +30,7 @@ async def all_lights(devices, hass=None, mode='turn_off'):
         await control_light(mode, entity, hass)
 
 
-async def control_lights(message, max_blinks=30, **kwargs):
+async def control_lights(message, max_count=100, **kwargs):
     hass = kwargs.get("hass", None)
     logger.debug(f'control lights with following states {hass.states}')
     devices = get_all_lights(hass)
@@ -47,7 +47,7 @@ async def control_lights(message, max_blinks=30, **kwargs):
         await all_lights(devices, hass, 'turn_off')
         current_count = 0
         rotate_list = deque(devices)
-        while current_count <= max_blinks and hass.states['cycle_light_enabled']:
+        while current_count <= max_count and hass.states['cycle_light_enabled']:
             current_count += 1
             rotate_list.rotate(1)
             first, second, *_ = list(rotate_list)
