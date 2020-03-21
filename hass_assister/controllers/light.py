@@ -1,9 +1,9 @@
 import magichue
 from loguru import logger
 import aiohttp
-from itertools import cycle
 import asyncio
 from collections import deque
+
 
 async def aiter(iterable):
     for item in iterable:
