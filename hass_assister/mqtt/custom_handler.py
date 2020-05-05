@@ -179,7 +179,7 @@ async def on_hass_mqtt_message(client, topic, payload, qos, properties):
         (from_topic, from_message),
         (to_topic, to_message),
     ) in mqtt_replacement_setting.items():
-        if re.match(from_topic, topic, re.IGNORECASE):
+        if re.match(from_topic, topic, re.IGNORECASE) and re.match(from_message, payload.decode(), re.IGNORECASE):
             new_topic, new_payload = replace_mqtt_message(
                 from_topic, to_topic, topic, from_message, to_message, payload
             )
