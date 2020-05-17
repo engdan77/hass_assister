@@ -28,11 +28,12 @@ class MyScheduler(object):
         self.add_initials(initials)
         self.scheduler.start()
 
-    def add_task(self, _func, _type, **kwargs):
+    def add_task(self, _func, _type, _args=[], _kwargs={}, **kwargs):
         logger.info(f"adding scheduling for {_func} with {kwargs}")
         f = import_item(_func)
+        # add job function f, calling with _args and _kwargs while **kwargs for trigger options
         self.scheduler.add_job(
-            f, _type, **kwargs
+            f, _type, _args, _kwargs, **kwargs
         )  # special trick to allow calling attr within other package
 
     def add_initials(self, initials):
