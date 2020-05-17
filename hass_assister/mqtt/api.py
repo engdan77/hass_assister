@@ -31,7 +31,7 @@ class MyMQTT(object):
         self.event_functions = default_events
         self.event_functions.update(event_functions)
 
-        self.client = MQTTClient(client_id)
+        # self.client = MQTTClient(client_id)
         self.auth = auth
         self.broker = broker
         self.port = port

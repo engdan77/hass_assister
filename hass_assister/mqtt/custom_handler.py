@@ -130,6 +130,20 @@ def send_kodi_message(address, port, data):
         logger.exception("Something unexpected went wrong while sending to Kodi")
 
 
+def process_mqtt_timers(mqtt_timer_counters,  mqtt_client):
+    for timer_id, counter in mqtt_timer_counters.copy().items():
+        counter -= 1
+        mqtt_timer_counters[timer_id] = counter
+        if counter <= 0:
+            mqtt_timer_counters.pop(timer_id)
+            mqtt_timer_setting = mqtt_client.properties["app_config"].get(
+                "mqtt_timer", {}
+            )
+            on_topic, on_message, timer_secs, new_topic, new_message = mqtt_timer_setting[timer_id]
+            logger.debug(f"timer for {timer_id} expired, sending {new_topic} with {new_message}")
+            mqtt_client.publish(new_topic, new_message)
+
+
 async def on_hass_mqtt_message(client, topic, payload, qos, properties):
     logger.debug(
         f"Incoming MQTT topic:{topic}, payload:{payload}, qos:{qos}, properties:{properties}"
@@ -160,17 +174,18 @@ async def on_hass_mqtt_message(client, topic, payload, qos, properties):
                 None, send_kodi_message, address, port, (e, m)
             )
             completed, pending = await asyncio.wait([blocking_call])
-    else:
-        # run function if one is found in mqtt message
-        *_, t = topic.split("/")
-        mqtt_functions = client.properties["app_config"].get("mqtt_functions", {})
-        if t in mqtt_functions.keys():
-            logger.info(
-                f"found {t} in mqtt topic and will run {mqtt_functions[t]}({payload})"
-            )
-            f = import_item(mqtt_functions[t])
-            logger.debug(f"awaiting {f}")
-            await f(payload, hass=hass, app_config=app_config)
+
+    # run function if one is found in mqtt message
+    *_, t = topic.split("/")
+    mqtt_functions = client.properties["app_config"].get("mqtt_functions", {})
+    if t in mqtt_functions.keys():
+        logger.info(
+            f"found {t} in mqtt topic and will run {mqtt_functions[t]}({payload})"
+        )
+        f = import_item(mqtt_functions[t])
+        logger.debug(f"awaiting {f}")
+        await f(payload, hass=hass, app_config=app_config)
+
     # if MQTT replace is found
     mqtt_replacement_setting = client.properties["app_config"].get(
         "mqtt_replacement", {}
@@ -186,3 +201,12 @@ async def on_hass_mqtt_message(client, topic, payload, qos, properties):
             # logger.debug(from_topic, from_message, to_topic, to_message)
             logger.debug(f"sending {new_topic} with {new_payload}")
             client.publish(new_topic, new_payload)
+
+    # if MQTT timer is found
+    mqtt_timer_setting = client.properties["app_config"].get(
+        "mqtt_timer", {}
+    )
+    mqtt_timer_counters = client.properties["mqtt_timer_counters"]
+    for timer_id, (on_topic, on_message, timer_secs, new_topic, new_message) in mqtt_timer_setting.items():
+        if re.match(on_topic, topic, re.IGNORECASE) and re.match(on_message, payload.decode(), re.IGNORECASE):
+            mqtt_timer_counters.update({timer_id: timer_secs})
