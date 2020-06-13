@@ -78,7 +78,7 @@ async def control_lights(message, max_count=100, **kwargs):
         hass.states['blink_light_enabled'] = False
         logger.info('light blink stopped')
     if cmd not in ("turn_on", "turn_off", "start_cycle", "blink_light"):
-        logger.warning(f"supplied {message} but expected turn_on, turn_off, start/stop_cycle, start/stop_blink")
+        logger.warning(f"supplied {message} but expected turn_on, turn_off, turn_on_device1, start/stop_cycle, start/stop_blink")
         return
     if not hass:
         logger.warning("there are no hass device list available, aborting")
