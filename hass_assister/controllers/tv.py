@@ -34,7 +34,7 @@ class MyPylips(Pylips):
                 "mqtt_listen": "False",
             },
             "TV": {
-                "host": host,
+                "host": host.split(',')[0],
                 "port": 1926,
                 "apiv": 6,
                 "user": user,
@@ -56,10 +56,11 @@ class MyPylips(Pylips):
         # send_magic_packet('54:2A:A2:C8:3A:EE')
         send_magic_packet(self.mac)
         time.sleep(5)
-        url = f"http://{self.host}:8008/apps/ChromeCast"
-        logger.debug(f"attempt to wake TV by ChromeCast using url {url}")
-        requests.post(url)
-        time.sleep(1)
+        for ip in self.host.split(','):
+            url = f"http://{ip}:8008/apps/ChromeCast"
+            logger.debug(f"attempt to wake TV by ChromeCast using url {url}")
+            requests.post(url)
+            time.sleep(1)
         power_state = self.run_command("powerstate").lower()
         logger.debug(f"my_start: {power_state}")
         if "error" in power_state:
