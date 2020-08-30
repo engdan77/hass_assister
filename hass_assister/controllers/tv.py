@@ -59,7 +59,12 @@ class MyPylips(Pylips):
         for ip in self.host.split(','):
             url = f"http://{ip}:8008/apps/ChromeCast"
             logger.debug(f"attempt to wake TV by ChromeCast using url {url}")
-            requests.post(url)
+            try:
+                requests.post(url)
+            except ConnectionError:
+                logger.error(f'failed to wakeup {ip}')
+            else:
+                logger.debug('success wake on lan')
             time.sleep(1)
         power_state = self.run_command("powerstate").lower()
         logger.debug(f"my_start: {power_state}")
