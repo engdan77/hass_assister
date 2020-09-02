@@ -61,7 +61,7 @@ class MyPylips(Pylips):
             logger.debug(f"attempt to wake TV by ChromeCast using url {url}")
             try:
                 requests.post(url)
-            except ConnectionError:
+            except requests.exceptions.ConnectionError:
                 logger.error(f'failed to wakeup {ip}')
             else:
                 logger.debug('success wake on lan')
