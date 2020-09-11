@@ -19,7 +19,7 @@ from functools import partial
 class MyPylips(Pylips):
     def __init__(
         self,
-        host="10.1.1.4",
+        host="10.1.1.4,10.1.0.103",
         user="EhlqVjhh0aoAdYMR",
         pwd="3975436a69392115aee33573aef4dbe7e59c79f5a61ae681008075e46911b3e3",
         mac="54:2A:A2:C8:3A:EE",
@@ -56,6 +56,7 @@ class MyPylips(Pylips):
         # send_magic_packet('54:2A:A2:C8:3A:EE')
         send_magic_packet(self.mac)
         time.sleep(5)
+        logger.debug(f'found following hosts to wakeup {self.host}')
         for ip in self.host.split(','):
             url = f"http://{ip}:8008/apps/ChromeCast"
             logger.debug(f"attempt to wake TV by ChromeCast using url {url}")
