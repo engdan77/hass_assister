@@ -16,10 +16,34 @@ import urllib3
 from functools import partial
 
 
+TV_COMMANDS = (
+    "home",
+    "watch_tv",
+    "cursor_up",
+    "cursor_down",
+    "cursor_left",
+    "cursor_right",
+    "confirm",
+    "back",
+    "options",
+    "digit_0",
+    "digit_1",
+    "digit_2",
+    "digit_3",
+    "digit_4",
+    "digit_5",
+    "digit_6",
+    "digit_7",
+    "digit_8",
+    "digit_9",
+    "source",
+)
+
+
 class MyPylips(Pylips):
     def __init__(
         self,
-        host="10.1.1.4,10.1.0.103",
+        host="10.1.1.4,10.1.1.12",
         user="EhlqVjhh0aoAdYMR",
         pwd="3975436a69392115aee33573aef4dbe7e59c79f5a61ae681008075e46911b3e3",
         mac="54:2A:A2:C8:3A:EE",
@@ -34,7 +58,7 @@ class MyPylips(Pylips):
                 "mqtt_listen": "False",
             },
             "TV": {
-                "host": host.split(',')[0],
+                "host": host.split(",")[0],
                 "port": 1926,
                 "apiv": 6,
                 "user": user,
@@ -56,16 +80,16 @@ class MyPylips(Pylips):
         # send_magic_packet('54:2A:A2:C8:3A:EE')
         send_magic_packet(self.mac)
         time.sleep(5)
-        logger.debug(f'found following hosts to wakeup {self.host}')
-        for ip in self.host.split(','):
+        logger.debug(f"found following hosts to wakeup {self.host}")
+        for ip in self.host.split(","):
             url = f"http://{ip}:8008/apps/ChromeCast"
             logger.debug(f"attempt to wake TV by ChromeCast using url {url}")
             try:
                 requests.post(url)
             except requests.exceptions.ConnectionError:
-                logger.error(f'failed to wakeup {ip}')
+                logger.error(f"failed to wakeup {ip}")
             else:
-                logger.debug('success wake on lan')
+                logger.debug("success wake on lan")
             time.sleep(1)
         power_state = self.run_command("powerstate").lower()
         logger.debug(f"my_start: {power_state}")
@@ -199,6 +223,11 @@ async def start_channel(message="1", **kwargs):
 async def command(message="turn_off", **kwargs):
     loop = asyncio.get_running_loop()
     logger.debug(f"tv command arg {message}")
-    if "turn_off" in message.decode():
-        tv = await loop.run_in_executor(None, MyPylips)
+    tv = await loop.run_in_executor(None, MyPylips)
+    m = message.decode()
+    if "turn_off" in m:
         await loop.run_in_executor(None, tv.my_turn_off)
+    if m in TV_COMMANDS:
+        logger.info(f'sending command "{m}" to tv')
+        tv.run_command(m)
+
