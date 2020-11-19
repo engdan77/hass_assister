@@ -74,6 +74,10 @@ class MyPylips(Pylips):
             self.available_commands = json.load(json_file)
 
     def my_start(self):
+        """This method will wake-on-lan using ChromeCast
+
+        :return:
+        """
         logger.info(
             f'will attempt to WakeOnLan on mac "{self.mac}" the type {type(self.mac)} is same {"54:2A:A2:C8:3A:EE" == self.mac}'
         )
@@ -126,6 +130,11 @@ class MyPylips(Pylips):
         return True
 
     def my_launch_kodi(self, max_time=10):
+        """Launching Kodi on the TV
+
+        :param max_time:
+        :return:
+        """
         for _ in range(max_time):
             logger.debug(f"my_launch_kodi: waiting for TV to start {_}/{max_time}")
             logger.debug(f'my_launch_kodi: {self.run_command("powerstate").lower()}')
@@ -142,6 +151,9 @@ class MyPylips(Pylips):
             )
 
     def my_turn_off(self):
+        """Turning off the TV
+
+        """
         if "on" in self.run_command("powerstate").lower():
             self.run_command("standby")
 
@@ -151,6 +163,11 @@ class MyKodi:
         self.kodi = Kodi(url)
 
     def wait_until_started(self, max_time=10):
+        """Method for checking that Kodi has started
+
+        :param max_time:
+        :return:
+        """
         for _ in range(max_time):
             logger.debug(f"attempt {_}/{max_time}")
             try:
@@ -163,17 +180,31 @@ class MyKodi:
         return False
 
     def open_media(self, url=""):
+        """Opens a media URL on Kodi
+
+        :param url:
+        """
         time.sleep(1)
         self.kodi.Player.Open(
             item={"file": url.decode() if isinstance(url, bytes) else url}
         )
 
     def open_channel(self, channel_id=0):
+        """Open a channel on Kodi
+
+        :param channel_id:
+        """
         time.sleep(1)
         self.kodi.Player.Open(item={"channelid": channel_id})
 
 
 async def start_media(message="smb://foo/bar.mp4", **kwargs):
+    """This is a function that will follow all steps to start TV and play a media
+
+    :param message:
+    :param kwargs:
+    :return:
+    """
     loop = asyncio.get_running_loop()
     logger.debug(f"tv start media arg: {message}")
     c = kwargs.get("app_config", None)
@@ -207,6 +238,12 @@ async def start_media(message="smb://foo/bar.mp4", **kwargs):
 
 
 async def start_channel(message="1", **kwargs):
+    """This function starts the TV and switches to a channel
+
+    :param message:
+    :param kwargs:
+    :return:
+    """
     c = kwargs.get("app_config", None)
     kodi_url = (
         f"http://{c['kodi_display']['address']}:{c['kodi_display']['port']}/jsonrpc"
@@ -233,6 +270,11 @@ async def start_channel(message="1", **kwargs):
 
 
 async def command(message="turn_off", **kwargs):
+    """Function for passing button or commands to TV based on commands in available_commands.json
+
+    :param message:
+    :param kwargs:
+    """
     loop = asyncio.get_running_loop()
     logger.debug(f"tv command arg {message}")
     tv = await loop.run_in_executor(None, MyPylips)

@@ -8,6 +8,7 @@ import datetime
 from hass_assister.helper import import_item
 import re
 
+# This could be customised for replacing specific words before displaying those
 REPLACE_TEXT = {
     ("light", "coffee"): {r"\b1\b": "ON", r"\b0\b": "OFF"},
     ("rf bridge",): {
@@ -96,6 +97,14 @@ def adjust_display_text(data, adapt_for="dummy_display"):
 
 
 async def send_dummy_display(address, port, data, display_type="text", loop=None):
+    """This is a function for sending sensor updates to dummy display
+
+    :param address:
+    :param port:
+    :param data:
+    :param display_type:
+    :param loop:
+    """
     display_types = ("text", "image")
     if display_type not in display_types:
         raise ValueError("display_type has to be text or image")
@@ -109,6 +118,12 @@ async def send_dummy_display(address, port, data, display_type="text", loop=None
 
 
 def send_kodi_message(address, port, data):
+    """This function is used to forward MQTT events to Kodi as notification
+
+    :param address:
+    :param port:
+    :param data:
+    """
     from kodijson import Kodi
 
     e, m, display_text = adjust_display_text(data, adapt_for="kodi_display")
@@ -153,6 +168,14 @@ def process_mqtt_timers(mqtt_timer_counters, mqtt_client):
 
 
 async def on_hass_mqtt_message(client, topic, payload, qos, properties):
+    """Main callback used for mqtt messages
+
+    :param client:
+    :param topic:
+    :param payload:
+    :param qos:
+    :param properties:
+    """
     logger.debug(
         f"Incoming MQTT topic:{topic}, payload:{payload}, qos:{qos}, properties:{properties}"
     )

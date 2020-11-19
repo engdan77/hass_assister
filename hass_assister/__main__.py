@@ -1,3 +1,4 @@
+"""hass_assister: A project adding more capibilities to HASS"""
 from hass_assister.mqtt.custom_handler import on_hass_mqtt_message, process_mqtt_timers
 from hass_assister.settings.api import init_settings
 from .scheduler import MyScheduler
@@ -12,6 +13,8 @@ import asyncio
 import sys
 from pprint import pprint as pp
 
+__author__ = 'Daniel Engvall'
+__email__ = 'daniel@engvalls.eu'
 
 default_initial_scheduled_tasks = [
     ["hass_assister.ping", "interval", {"seconds": 60, "id": "tick"}],

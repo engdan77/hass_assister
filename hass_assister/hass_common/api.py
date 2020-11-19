@@ -6,7 +6,6 @@ from nested_lookup import nested_lookup
 import fs
 import yaml
 from urllib.parse import urlparse
-from smb.smb_structs import OperationFailure
 
 
 class HassInstance(object):
@@ -38,6 +37,9 @@ class HassInstance(object):
         self.update_configuration()
 
     async def update_sensor_status(self):
+        """Collect the sensor status
+
+        """
         q = f'{self.url.strip("/")}/api/states'
         logger.debug(f"query {q}")
         try:

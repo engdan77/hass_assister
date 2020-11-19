@@ -11,6 +11,11 @@ async def aiter(iterable):
 
 
 def get_all_lights(hass):
+    """Return a list a list of all lights from hass
+
+    :param hass:
+    :return: list
+    """
     lights = []
     for domain in ("switch", "light"):
         for device in hass.config.get(domain, []):
@@ -31,6 +36,13 @@ async def all_lights(devices, hass=None, mode="turn_off"):
 
 
 async def control_lights(message, max_count=100, **kwargs):
+    """Control lights
+
+    :param message:
+    :param max_count:
+    :param kwargs:
+    :return:
+    """
     hass = kwargs.get("hass", None)
     logger.debug(f"control lights with following states {hass.states}")
     devices = get_all_lights(hass)
