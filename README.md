@@ -48,7 +48,7 @@ Also set rules to e.g. publish messages after period of time when other found fo
 **Step 1** - clone the repo, and create a `config` directory where `hass_assister.yaml` configuration will be created
 
 ```shell script
-git clone ________
+git clone https://github.com/engdan77/hass_assister.git
 cd hass_assister
 ```
 **Step 2** - build and start docker container
