@@ -130,7 +130,7 @@ def send_kodi_message(address, port, data):
         logger.exception("Something unexpected went wrong while sending to Kodi")
 
 
-def process_mqtt_timers(mqtt_timer_counters,  mqtt_client):
+def process_mqtt_timers(mqtt_timer_counters, mqtt_client):
     for timer_id, counter in mqtt_timer_counters.copy().items():
         counter -= 1
         mqtt_timer_counters[timer_id] = counter
@@ -139,8 +139,16 @@ def process_mqtt_timers(mqtt_timer_counters,  mqtt_client):
             mqtt_timer_setting = mqtt_client.properties["app_config"].get(
                 "mqtt_timer", {}
             )
-            on_topic, on_message, timer_secs, new_topic, new_message = mqtt_timer_setting[timer_id]
-            logger.debug(f"timer for {timer_id} expired, sending {new_topic} with {new_message}")
+            (
+                on_topic,
+                on_message,
+                timer_secs,
+                new_topic,
+                new_message,
+            ) = mqtt_timer_setting[timer_id]
+            logger.debug(
+                f"timer for {timer_id} expired, sending {new_topic} with {new_message}"
+            )
             mqtt_client.publish(new_topic, new_message)
 
 
@@ -194,7 +202,9 @@ async def on_hass_mqtt_message(client, topic, payload, qos, properties):
         (from_topic, from_message),
         (to_topic, to_message),
     ) in mqtt_replacement_setting.items():
-        if re.match(from_topic, topic, re.IGNORECASE) and re.match(from_message, payload.decode(), re.IGNORECASE):
+        if re.match(from_topic, topic, re.IGNORECASE) and re.match(
+            from_message, payload.decode(), re.IGNORECASE
+        ):
             new_topic, new_payload = replace_mqtt_message(
                 from_topic, to_topic, topic, from_message, to_message, payload
             )
@@ -203,10 +213,16 @@ async def on_hass_mqtt_message(client, topic, payload, qos, properties):
             client.publish(new_topic, new_payload)
 
     # if MQTT timer is found
-    mqtt_timer_setting = client.properties["app_config"].get(
-        "mqtt_timer", {}
-    )
+    mqtt_timer_setting = client.properties["app_config"].get("mqtt_timer", {})
     mqtt_timer_counters = client.properties["mqtt_timer_counters"]
-    for timer_id, (on_topic, on_message, timer_secs, new_topic, new_message) in mqtt_timer_setting.items():
-        if re.match(on_topic, topic, re.IGNORECASE) and re.match(on_message, payload.decode(), re.IGNORECASE):
+    for timer_id, (
+        on_topic,
+        on_message,
+        timer_secs,
+        new_topic,
+        new_message,
+    ) in mqtt_timer_setting.items():
+        if re.match(on_topic, topic, re.IGNORECASE) and re.match(
+            on_message, payload.decode(), re.IGNORECASE
+        ):
             mqtt_timer_counters.update({timer_id: timer_secs})
