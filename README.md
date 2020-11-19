@@ -48,10 +48,12 @@ Also set rules to e.g. publish messages after period of time when other found fo
 **Step 1** - clone the repo, and create a `config` directory where `hass_assister.yaml` configuration will be created
 
 ```shell script
+# create directory or config, tmp in this case
+mkdir /tmp
 git clone https://github.com/engdan77/hass_assister.git
 cd hass_assister
 ```
-**Step 2** - build and start docker container
+**Step 2** - build and start docker container, mount `/tmp` and bind port `8000` for REST API
 
 ```shell script
 docker build -t hass_assister . && docker run -p 8000:8000 -v /tmp:/root/.config/hass_assister.settings --name hass_assister hass_assister 
@@ -157,3 +159,7 @@ function/tv_start_channel 720
 /lights_control start_blink
 /lights_control start_cycle
 ```
+
+#### REST API
+
+Currently not used but you shall be able to access its swagger on `http://127.0.0.1:8000/docs`
