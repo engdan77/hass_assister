@@ -1,24 +1,69 @@
+## HASS (HomeAssist) assister
+
+### Background
+
+Reasoning behind this project was primarily allow me adding more functionalities triggered by MQTT events such as controlling TV (at that time being developed was not fulfilling all needs) and on a more "wildcard" basis control lights without adding too much to the existing HomeAssistant yaml-configuration (that at that time was too limited for me).
+In future have in mind using the scheduler to e.g. poll external service (garmin etc) and supply these as MQTT messages to be captured by HomeAssistant.
+Also set rules to e.g. publish messages after period of time when other found for e.g. turn of lights after period of time.
+
+### High level design
+
+```
++------------+-----------+
+|            |           |
+|scheduler   |  REST-API |
++------------+-----------+
+|     hass_assister      |
+|                        |
+|                        |
+|                        |
++------------+-----------+
+             ^
+             |   listen/publish
+             |
+             |
+             v
++------------+------------+
+|                         |
+|                         |
+|      MQTT               |
+|                         |
+|                         |
++------------+------------+
+             ^
+             |
+             |
++------------v------------+
+|                         |
+|                         |
+|   Home Assistant        |
+|                         |
+|                         |
++-------------------------+
+
+```
+
 ### Installation
 
-Step 1 - clone the repo, and create a `config` directory where `hass_assister.yaml` configuration will be created
+**Step 1** - clone the repo, and create a `config` directory where `hass_assister.yaml` configuration will be created
 
 ```shell script
 git clone ________
 cd hass_assister
 ```
-Step 2 - build and start docker container
+**Step 2** - build and start docker container
 
 ```shell script
 docker build -t hass_assister . && docker run -p 8000:8000 -v /tmp:/root/.config/hass_assister.settings --name hass_assister hass_assister 
 ```
 
-Step 3 - update configuration and restart container
+**Step 3** - update configuration and restart container
 
 ```shell script
 docker restart hass_assister 
 ```
 
-Configuration file
+#### Configuration file
 
 ##### Sample
 
@@ -98,4 +143,17 @@ mqtt_timer:
   - off
 ```
 
+#### Sample of MQTT topics and messages
 
+```
+# TV commands found in available_commands.json
+function/tv_command volume_up
+function/tv_start_media smb://192.168.1.1/sample.mp4
+function/tv_start_channel 720
+
+# Lights, turn on/off, cycle and blink
+/lights_control turn_on
+/lights_control turn_on_mylamp_and_otherlamp
+/lights_control start_blink
+/lights_control start_cycle
+```

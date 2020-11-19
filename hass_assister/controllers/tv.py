@@ -43,10 +43,10 @@ TV_COMMANDS = (
 class MyPylips(Pylips):
     def __init__(
         self,
-        host="10.1.1.4,10.1.1.12",
-        user="EhlqVjhh0aoAdYMR",
-        pwd="3975436a69392115aee33573aef4dbe7e59c79f5a61ae681008075e46911b3e3",
-        mac="54:2A:A2:C8:3A:EE",
+        host="",
+        user="",
+        pwd="",
+        mac="",
     ):
         self.mac = mac
         self.host = host
@@ -77,7 +77,6 @@ class MyPylips(Pylips):
         logger.info(
             f'will attempt to WakeOnLan on mac "{self.mac}" the type {type(self.mac)} is same {"54:2A:A2:C8:3A:EE" == self.mac}'
         )
-        # send_magic_packet('54:2A:A2:C8:3A:EE')
         send_magic_packet(self.mac)
         time.sleep(5)
         logger.debug(f"found following hosts to wakeup {self.host}")
@@ -193,7 +192,10 @@ async def start_media(message="smb://foo/bar.mp4", **kwargs):
         return False
     logger.debug("starting kodi")
     await loop.run_in_executor(None, tv.my_launch_kodi)
-    kodi = await loop.run_in_executor(None, MyKodi)
+    kodi_url = (
+        f"http://{c['kodi_display']['address']}:{c['kodi_display']['port']}/jsonrpc"
+    )
+    kodi = await loop.run_in_executor(None, MyKodi, kodi_url)
     logger.debug("waiting for kodi to start")
     status = await loop.run_in_executor(None, kodi.wait_until_started)
     if status is False:
@@ -205,14 +207,24 @@ async def start_media(message="smb://foo/bar.mp4", **kwargs):
 
 
 async def start_channel(message="1", **kwargs):
+    c = kwargs.get("app_config", None)
+    kodi_url = (
+        f"http://{c['kodi_display']['address']}:{c['kodi_display']['port']}/jsonrpc"
+    )
     loop = asyncio.get_running_loop()
     logger.debug(f"tv start channel arg {message}")
     # TODO: Add arguments user, password and mac to tv
-    mypylips_with_args = partial(MyPylips, host="", user="", pwd="", mac="")
-    tv = await loop.run_in_executor(None, MyPylips)
+    tv = await loop.run_in_executor(
+        None,
+        MyPylips,
+        c["philips_ip"],
+        c["philips_user"],
+        c["philips_password"],
+        c["philips_mac"],
+    )
     await loop.run_in_executor(None, tv.my_start)
     await loop.run_in_executor(None, tv.my_launch_kodi)
-    kodi = await loop.run_in_executor(None, MyKodi)
+    kodi = await loop.run_in_executor(None, MyKodi, kodi_url)
     status = await loop.run_in_executor(None, kodi.wait_until_started)
     if status is False:
         return
@@ -230,4 +242,3 @@ async def command(message="turn_off", **kwargs):
     if m in TV_COMMANDS:
         logger.info(f'sending command "{m}" to tv')
         tv.run_command(m)
-
