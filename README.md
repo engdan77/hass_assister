@@ -1,4 +1,4 @@
-## HASS (HomeAssist) assister
+## HASS (Home Assistant) assister
 
 ### Background
 
