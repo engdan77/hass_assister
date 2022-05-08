@@ -1,4 +1,4 @@
-"""hass_assister: A project adding more capibilities to HASS"""
+"""hass_assister: A project adding more capabilities to HASS"""
 from hass_assister.mqtt.custom_handler import on_hass_mqtt_message, process_mqtt_timers
 from hass_assister.settings.api import init_settings
 from .scheduler import MyScheduler
