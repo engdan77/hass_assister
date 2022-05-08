@@ -7,6 +7,7 @@ import requests
 import datetime
 from hass_assister.helper import import_item
 import re
+from ping3 import ping
 
 # This could be customised for replacing specific words before displaying those
 REPLACE_TEXT = {
@@ -194,6 +195,9 @@ async def on_hass_mqtt_message(client, topic, payload, qos, properties):
         if dummy_display_settings["enabled"]:
             address = dummy_display_settings["address"]
             port = dummy_display_settings["port"]
+            if not ping(address):
+                logger.debug(f'skipping sending to to dummy display since {address} not available')
+                return
             await send_dummy_display(
                 address, port, (e, m), display_type="text", loop=client._connected._loop
             )
@@ -201,6 +205,9 @@ async def on_hass_mqtt_message(client, topic, payload, qos, properties):
         if kodi_display_settings["enabled"]:
             address = kodi_display_settings["address"]
             port = kodi_display_settings["port"]
+            if not ping(address):
+                logger.debug(f'skipping sending message to Kodi since {address} not available')
+                return
             blocking_call = loop.run_in_executor(
                 None, send_kodi_message, address, port, (e, m)
             )
