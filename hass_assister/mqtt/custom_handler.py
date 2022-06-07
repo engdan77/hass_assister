@@ -141,7 +141,7 @@ def send_kodi_message(address, port, data):
         urllib3.exceptions.NewConnectionError,
         urllib3.exceptions.MaxRetryError,
     ):
-        logger.warning(f"Unable to conned to Kodi {address}:{port}")
+        logger.warning(f"Unable to connect to Kodi {address}:{port}")
     except Exception:
         logger.exception("Something unexpected went wrong while sending to Kodi")
 
@@ -191,6 +191,10 @@ async def on_hass_mqtt_message(client, topic, payload, qos, properties):
     if entity:
         e, m = (entity["name"], payload.decode())
         logger.info(f"Processing MQTT message: {e} changed to {m}")
+        # TODO: Add exception list of devices to not send update
+        if any([_ in e.lower() for _ in app_config.get('reject_topic_words', [])]):
+            logger.debug(f'Skipping topic "{e}"')
+            return
         dummy_display_settings = client.properties["app_config"]["dummy_display"]
         if dummy_display_settings["enabled"]:
             address = dummy_display_settings["address"]
