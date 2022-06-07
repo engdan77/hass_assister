@@ -84,6 +84,7 @@ class MyPylips(Pylips):
         send_magic_packet(self.mac)
         time.sleep(5)
         logger.debug(f"found following hosts to wakeup {self.host}")
+        # TODO: Assure chromecast wakes up
         for ip in self.host.split(","):
             url = f"http://{ip}:8008/apps/ChromeCast"
             logger.debug(f"attempt to wake TV by ChromeCast using url {url}")
