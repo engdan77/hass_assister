@@ -86,7 +86,8 @@ class MyMQTT(object):
     def on_disconnect(self, client, packet, exc=None):
         logger.info("MQTT Disconnected")
 
-    def on_subscribe(self, client, mid, qos):
+    @staticmethod
+    def on_subscribe(*args):
         logger.info("MQTT SUBSCRIBED")
 
     def ask_exit(self, *args):
