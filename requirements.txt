@@ -1,8 +1,8 @@
-aiohttp==3.5.4
+aiohttp==3.8.1
 uvicorn~=0.17.6
 fs==2.4.5
-APScheduler==3.6.0
-gmqtt==0.5.6
+APScheduler==3.9.1
+gmqtt==0.6.11
 easyconf==1.1
 appdirs==1.4.3
 loguru==0.3.2
