@@ -30,6 +30,7 @@ default_config = {
     "mqtt_password": {"initial": ""},
     "initial_scheduled_tasks": {"initial": default_initial_scheduled_tasks},
     "philips_ip": {"initial": ""},
+    "wakeup_chrome_ip": {"initial": ""},
     "philips_user": {"initial": ""},
     "philips_password": {"initial": ""},
     "philips_mac": {"initial": ""},
