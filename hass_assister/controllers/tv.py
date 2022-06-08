@@ -47,9 +47,11 @@ class MyPylips(Pylips):
         user="",
         pwd="",
         mac="",
+        wakeup_chrome_ip=""
     ):
         self.mac = mac
         self.host = host
+        self.wakeup_chrome_ip = wakeup_chrome_ip
         self.config = {
             "DEFAULT": {
                 "verbose": True,
@@ -85,6 +87,16 @@ class MyPylips(Pylips):
         time.sleep(5)
         logger.debug(f"found following hosts to wakeup {self.host}")
         # TODO: Assure chromecast wakes up
+
+        if self.wakeup_chrome_ip:
+            logger.info(f"waking up using external chromecast using {self.wakeup_chrome_ip}")
+            url = f"http://{self.wakeup_chrome_ip}:8008/apps/ChromeCast"
+            try:
+                requests.post(url)
+            except requests.exceptions.ConnectionError:
+                logger.error(f"failed to wakeup {url}")
+            else:
+                logger.debug("success wake up external chromecast")
         for ip in self.host.split(","):
             url = f"http://{ip}:8008/apps/ChromeCast"
             logger.debug(f"attempt to wake TV by ChromeCast using url {url}")
@@ -216,6 +228,7 @@ async def start_media(message="smb://foo/bar.mp4", **kwargs):
         c["philips_user"],
         c["philips_password"],
         c["philips_mac"],
+        c["wakeup_chrome_ip"]
     )
     logger.debug("starting tv")
     tv_started = await loop.run_in_executor(None, tv.my_start)
@@ -259,6 +272,7 @@ async def start_channel(message="1", **kwargs):
         c["philips_user"],
         c["philips_password"],
         c["philips_mac"],
+        c["wakeup_chrome_ip"]
     )
     await loop.run_in_executor(None, tv.my_start)
     await loop.run_in_executor(None, tv.my_launch_kodi)
