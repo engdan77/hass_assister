@@ -26,9 +26,10 @@ def init_settings(_default_config_params):
     else:
         base_config_dir = user_config_dir(p)
         logger.info(
-            f"no local config directory, creating settings in {base_config_dir}"
+            f"no local config directory, creating settings folder {base_config_dir}"
         )
     conf_path = Path(base_config_dir) / Path(f"{p}.yaml")
+    logger.info(f"using config {conf_path}")
     if not conf_path.exists():
         conf_path.parent.mkdir(parents=True, exist_ok=True)
         logger.info(f"creating {conf_path}")
