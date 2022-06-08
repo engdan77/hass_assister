@@ -1,5 +1,4 @@
 """hass_assister: A project adding more capabilities to HASS"""
-import uvloop
 from hass_assister.mqtt.custom_handler import on_hass_mqtt_message, process_mqtt_timers
 from hass_assister.settings.api import init_settings
 from .scheduler import MyScheduler
@@ -77,8 +76,6 @@ async def start_uvicorn():
 
 
 def main():
-    # asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
-
     # add better logging
     logger.remove()
     logger.add(sys.stdout, backtrace=True, diagnose=True, enqueue=True)
