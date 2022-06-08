@@ -92,10 +92,12 @@ initial_scheduled_tasks:
 # you will be able to control it using the REST API that this service supply.
 # How to obtain credentials could be found if you look at this project https://github.com/eslavnov/pylips
 # MAC address is used to wake-on-lan and should be possible for you to get from your router
+# wakeup_chrome_ip added to allow wake up TV using external dongle
 philips_ip: ''
 philips_user: ''
 philips_password: ''
 philips_mac: ''
+wakeup_chrome_ip: ''
 
 # This gives support to allow events to automatically be sent to "dummy devices"
 # Read and use this project if you find use for this https://github.com/engdan77/dummy_screen
@@ -110,6 +112,11 @@ kodi_display:
   enabled: false
   address: 127.0.0.1
   port: 9999
+
+# Adding words would assure no messages being sent where those found as part of the MQTT topic
+reject_topic_words:
+- foo
+- bar
 
 # With the extension of new components this will eventually increase.
 # With the below the keys are "topic" that the REST API will recognize and trigger following components
